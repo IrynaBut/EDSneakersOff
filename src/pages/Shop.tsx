@@ -13,6 +13,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import ProductCard from "@/components/ProductCard";
+import { useProducts } from "@/hooks/useProducts";
 import { 
   Filter,
   SlidersHorizontal,
@@ -28,77 +29,7 @@ const Shop = ({ category }: { category?: string }) => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
 
-  // Mock data - will be replaced with real data when Supabase is connected
-  const products = [
-    {
-      id: "1",
-      name: "Air Max Classic Vintage",
-      price: 129.99,
-      originalPrice: 159.99,
-      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop",
-      category: "Homme",
-      rating: 5,
-      isNew: false,
-      isOnSale: true,
-      sizes: ["39", "40", "41", "42", "43", "44"]
-    },
-    {
-      id: "2", 
-      name: "Running Pro Women's Edition",
-      price: 149.99,
-      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&h=400&fit=crop",
-      category: "Femme",
-      rating: 5,
-      isNew: true,
-      isOnSale: false,
-      sizes: ["36", "37", "38", "39", "40", "41"]
-    },
-    {
-      id: "3",
-      name: "Kids Adventure Sneakers",
-      price: 79.99,
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop", 
-      category: "Enfant",
-      rating: 4,
-      isNew: true,
-      isOnSale: false,
-      sizes: ["28", "29", "30", "31", "32", "33", "34", "35"]
-    },
-    {
-      id: "4",
-      name: "Urban Street High-Top",
-      price: 189.99,
-      originalPrice: 229.99,
-      image: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=400&h=400&fit=crop",
-      category: "Homme", 
-      rating: 5,
-      isNew: false,
-      isOnSale: true,
-      sizes: ["40", "41", "42", "43", "44", "45"]
-    },
-    {
-      id: "5",
-      name: "Classic White Leather",
-      price: 119.99,
-      image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400&h=400&fit=crop",
-      category: "Femme",
-      rating: 4,
-      isNew: false,
-      isOnSale: false,
-      sizes: ["36", "37", "38", "39", "40", "41", "42"]
-    },
-    {
-      id: "6",
-      name: "Sport Performance Max",
-      price: 169.99,
-      image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop",
-      category: "Homme",
-      rating: 5,
-      isNew: true,
-      isOnSale: false,
-      sizes: ["39", "40", "41", "42", "43", "44", "45"]
-    }
-  ];
+  const { products: allProducts, loading } = useProducts(category);
 
   const sizes = ["28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"];
   const brands = ["Nike", "Adidas", "Puma", "New Balance", "Converse", "Vans"];
@@ -109,9 +40,25 @@ const Shop = ({ category }: { category?: string }) => {
      category === "enfant" ? "Collection Enfant" : "Tous les Produits") 
     : "Tous les Produits";
 
-  const filteredProducts = category ? 
-    products.filter(p => p.category.toLowerCase() === category) : 
-    products;
+  // Apply filters to products
+  const filteredProducts = allProducts.filter(product => {
+    // Price filter
+    if (product.price < priceRange[0] || product.price > priceRange[1]) {
+      return false;
+    }
+    
+    // Size filter
+    if (selectedSizes.length > 0 && !product.sizes.some(size => selectedSizes.includes(size))) {
+      return false;
+    }
+    
+    // Brand filter
+    if (selectedBrands.length > 0 && product.brand && !selectedBrands.includes(product.brand)) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -277,9 +224,20 @@ const Shop = ({ category }: { category?: string }) => {
                 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
                 : 'grid-cols-1'
             }`}>
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
+              {loading ? (
+                // Loading skeletons
+                [...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-secondary/20 rounded-lg h-96 animate-pulse" />
+                ))
+              ) : filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">Aucun produit trouvé avec ces filtres.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
