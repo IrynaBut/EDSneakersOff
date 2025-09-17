@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { CartProvider } from "./hooks/useCart";
+import { FavoritesProvider } from "./hooks/useFavorites";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -14,6 +15,8 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import TestAPI from "./pages/TestAPI";
 import { UserProfile } from "./components/UserProfile";
+import ProductDetail from "./pages/ProductDetail";
+import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,33 +25,37 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <CartProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/homme" element={<Shop category="homme" />} />
-                  <Route path="/femme" element={<Shop category="femme" />} />
-                  <Route path="/enfant" element={<Shop category="enfant" />} />
-                  <Route path="/nouveautes" element={<Shop />} />
-                  <Route path="/produits" element={<Shop />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/connexion" element={<Login />} />
-                  <Route path="/commande" element={<Checkout />} />
-                  <Route path="/test-api" element={<TestAPI />} />
-                  <Route path="/profile" element={<UserProfile />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          </BrowserRouter>
-        </TooltipProvider>
+        <FavoritesProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/homme" element={<Shop category="homme" />} />
+                    <Route path="/femme" element={<Shop category="femme" />} />
+                    <Route path="/enfant" element={<Shop category="enfant" />} />
+                    <Route path="/nouveautes" element={<Shop />} />
+                    <Route path="/produits" element={<Shop />} />
+                    <Route path="/produit/:id" element={<ProductDetail />} />
+                    <Route path="/favoris" element={<Favorites />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/connexion" element={<Login />} />
+                    <Route path="/commande" element={<Checkout />} />
+                    <Route path="/test-api" element={<TestAPI />} />
+                    <Route path="/profile" element={<UserProfile />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </BrowserRouter>
+          </TooltipProvider>
+        </FavoritesProvider>
       </CartProvider>
     </AuthProvider>
   </QueryClientProvider>

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, ShoppingCart, Eye, Star } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useFavorites } from "@/hooks/useFavorites";
 import { toast } from "sonner";
 
 interface ProductVariant {
@@ -42,9 +43,9 @@ const ProductCard = ({
   sizes,
   variants = []
 }: ProductCardProps) => {
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useCart();
+  const { isFavorite, addToFavorites, removeFromFavorites } = useFavorites();
 
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
 
@@ -60,6 +61,17 @@ const ProductCard = ({
       await addToCart(id, firstVariant.id);
     } else {
       toast.error('Produit non disponible');
+    }
+  };
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isFavorite(id)) {
+      await removeFromFavorites(id);
+    } else {
+      await addToFavorites(id);
     }
   };
 
@@ -102,10 +114,10 @@ const ProductCard = ({
               variant="secondary"
               size="sm"
               className="w-8 h-8 p-0 bg-background/80 hover:bg-background shadow-soft"
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={handleFavoriteClick}
             >
               <Heart 
-                className={`h-4 w-4 ${isWishlisted ? 'fill-accent text-accent' : 'text-foreground'}`} 
+                className={`h-4 w-4 ${isFavorite(id) ? 'fill-accent text-accent' : 'text-foreground'}`} 
               />
             </Button>
             <Button
@@ -165,7 +177,7 @@ const ProductCard = ({
               <span className="font-semibold text-foreground">
                 {price.toFixed(2)} €
               </span>
-              {originalPrice && (
+              {isOnSale && originalPrice && originalPrice > price && (
                 <span className="text-sm text-muted-foreground line-through">
                   {originalPrice.toFixed(2)} €
                 </span>

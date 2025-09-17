@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +12,19 @@ import {
   LogOut
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useFavorites } from "@/hooks/useFavorites";
+import { supabase } from "@/integrations/supabase/client";
 import Cart from "@/components/Cart";
+import SearchDialog from "@/components/SearchDialog";
 import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { favorites } = useFavorites();
   
   const navigation = [
     { name: "Accueil", href: "/" },
@@ -30,6 +36,30 @@ const Header = () => {
 
   const isActive = (href: string) => location.pathname === href;
 
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) {
+        setUserProfile(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) throw error;
+        setUserProfile(data);
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -39,8 +69,12 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <img src={logo} alt="ED Sneakers" className="h-8 w-auto" />
+          <Link to="/" className="flex items-center space-x-3">
+            <img src={logo} alt="ED Sneakers" className="h-10 w-auto" />
+            <div className="hidden sm:block">
+              <span className="text-xl font-bold text-primary">ED Sneakers</span>
+              <p className="text-xs text-muted-foreground">Style & Qualité</p>
+            </div>
           </Link>
 
           {/* Navigation Desktop */}
@@ -62,11 +96,25 @@ const Header = () => {
 
           {/* Actions Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="relative">
+            {/* Greeting */}
+            {user && userProfile && (
+              <span className="text-sm text-muted-foreground">
+                Bonjour, {userProfile.first_name || userProfile.email}
+              </span>
+            )}
+            
+            <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="relative">
               <Search className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="relative">
-              <Heart className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="relative" asChild>
+              <Link to="/favoris">
+                <Heart className="h-4 w-4" />
+                {favorites.length > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {favorites.length}
+                  </Badge>
+                )}
+              </Link>
             </Button>
             <Cart />
             {user ? (
@@ -122,15 +170,22 @@ const Header = () => {
                 </Link>
               ))}
               <div className="flex items-center justify-around pt-4 border-t">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)}>
                   <Search className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
-                  <Heart className="h-4 w-4" />
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/favoris">
+                    <Heart className="h-4 w-4" />
+                  </Link>
                 </Button>
                 <Cart />
                 {user ? (
                   <div className="flex items-center justify-center">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to="/profile">
+                        <User className="h-4 w-4" />
+                      </Link>
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                       <LogOut className="h-4 w-4" />
                     </Button>
@@ -147,6 +202,9 @@ const Header = () => {
           </div>
         )}
       </div>
+
+      {/* Search Dialog */}
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   );
 };
