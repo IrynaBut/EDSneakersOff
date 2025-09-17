@@ -13,12 +13,23 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'avallon': ['Avallon', 'serif'],
+        'montserrat': ['Montserrat', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        brand: {
+          beige: "hsl(var(--brand-beige))",
+          rose: "hsl(var(--brand-rose))",
+          forest: "hsl(var(--brand-forest))",
+          sage: "hsl(var(--brand-sage))",
+          brown: "hsl(var(--brand-brown))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
