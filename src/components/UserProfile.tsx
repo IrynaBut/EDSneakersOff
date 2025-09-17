@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Crown, ShoppingBag, Users, Package, BarChart3, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminPanel } from './AdminPanel';
+import { VendorPanel } from './VendorPanel';
 
 interface UserProfile {
   id: string;
@@ -125,8 +127,14 @@ export const UserProfile = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className={`grid w-full ${
+          profile.role === 'admin' ? 'grid-cols-4' : 
+          profile.role === 'vendeur' ? 'grid-cols-4' : 
+          'grid-cols-4'
+        }`}>
           <TabsTrigger value="overview">Aperçu</TabsTrigger>
+          {profile.role === 'admin' && <TabsTrigger value="admin">Administration</TabsTrigger>}
+          {profile.role === 'vendeur' && <TabsTrigger value="vendor">Gestion</TabsTrigger>}
           {profile.role === 'client' && <TabsTrigger value="loyalty">Fidélité</TabsTrigger>}
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="settings">Paramètres</TabsTrigger>
@@ -178,6 +186,18 @@ export const UserProfile = () => {
             </Card>
           </div>
         </TabsContent>
+
+        {profile.role === 'admin' && (
+          <TabsContent value="admin">
+            <AdminPanel />
+          </TabsContent>
+        )}
+
+        {profile.role === 'vendeur' && (
+          <TabsContent value="vendor">
+            <VendorPanel />
+          </TabsContent>
+        )}
 
         {profile.role === 'client' && (
           <TabsContent value="loyalty">
