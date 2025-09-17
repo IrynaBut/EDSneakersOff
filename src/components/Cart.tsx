@@ -146,7 +146,10 @@ const Cart = () => {
                   <Button 
                     className="w-full" 
                     size="lg"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.location.href = '/commande';
+                    }}
                   >
                     Passer la commande
                   </Button>

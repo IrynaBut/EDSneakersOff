@@ -11,6 +11,8 @@ import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Auth from "./pages/Auth";
 import Login from "./pages/Login";
+import Checkout from "./pages/Checkout";
+import TestAPI from "./pages/TestAPI";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
                   <Route path="/produits" element={<Shop />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/connexion" element={<Login />} />
+                  <Route path="/commande" element={<Checkout />} />
+                  <Route path="/test-api" element={<TestAPI />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
