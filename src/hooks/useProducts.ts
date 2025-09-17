@@ -39,7 +39,7 @@ export const useProducts = (category?: string, featured?: boolean) => {
           .from('products')
           .select(`
             *,
-            categories!inner (
+            categories (
               name,
               slug
             ),
