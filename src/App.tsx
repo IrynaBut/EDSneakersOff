@@ -14,7 +14,7 @@ import Auth from "./pages/Auth";
 import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import TestAPI from "./pages/TestAPI";
-import { UserProfile } from "./components/UserProfile";
+import UserProfile from "./pages/UserProfile";
 import ProductDetail from "./pages/ProductDetail";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
@@ -51,9 +51,8 @@ const App = () => (
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/commande" element={<Checkout />} />
                     <Route path="/gestion" element={<Management />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/test-api" element={<TestAPI />} />
                     <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/faq" element={<FAQ />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>

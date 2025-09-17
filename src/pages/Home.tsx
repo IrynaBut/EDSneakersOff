@@ -83,14 +83,14 @@ const NewsletterSection = () => {
   }
 
   return (
-    <section className="py-12 lg:py-16 gradient-accent">
+    <section className="py-8 lg:py-12 gradient-accent">
       <div className="container mx-auto px-4 text-center">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Mail className="w-12 h-12 text-white mx-auto mb-4" />
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
+        <div className="max-w-2xl mx-auto space-y-4">
+          <Mail className="w-8 h-8 text-white mx-auto mb-2" />
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
             Restez à la Pointe de la Mode
           </h2>
-          <p className="text-xl text-white/80">
+          <p className="text-lg text-white/80">
             Inscrivez-vous à notre newsletter et recevez en exclusivité nos dernières nouveautés et offres spéciales.
           </p>
           <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -182,7 +182,7 @@ const Home = () => {
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-semibold drop-shadow-lg bg-black/20 p-4 rounded-lg backdrop-blur-sm">
+            <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto font-semibold drop-shadow-2xl">
               Découvrez notre collection exclusive de baskets premium pour toute la famille. 
               Qualité, style et confort garantis.
             </p>
@@ -287,7 +287,7 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 lg:py-24">
+      <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (

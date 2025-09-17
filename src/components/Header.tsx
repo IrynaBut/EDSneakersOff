@@ -9,7 +9,8 @@ import {
   Menu, 
   X,
   Heart,
-  LogOut
+  LogOut,
+  Settings
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -73,7 +74,7 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-3">
             <img src={logo} alt="ED Sneakers" className="h-10 w-auto" />
             <div className="hidden sm:block">
-              <span className="text-xl font-bold text-primary">ED Sneakers</span>
+              <span className="text-xl font-bold text-primary">EDSneakers</span>
               <p className="text-xs text-muted-foreground">Style & Qualité</p>
             </div>
           </Link>
@@ -120,12 +121,21 @@ const Header = () => {
             <Cart />
             {user ? (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/profile">
-                    <User className="h-4 w-4" />
-                    <span className="ml-2 text-sm">Profil</span>
-                  </Link>
-                </Button>
+                {(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/gestion">
+                      <Settings className="h-4 w-4" />
+                      <span className="ml-2 text-sm">Gestion</span>
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/profile">
+                      <User className="h-4 w-4" />
+                      <span className="ml-2 text-sm">Profil</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
                   <span className="ml-2 text-sm">Déconnexion</span>
@@ -182,11 +192,19 @@ const Header = () => {
                 <Cart />
                 {user ? (
                   <div className="flex items-center justify-center">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/profile">
-                        <User className="h-4 w-4" />
-                      </Link>
-                    </Button>
+                    {(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/gestion">
+                          <Settings className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/profile">
+                          <User className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                       <LogOut className="h-4 w-4" />
                     </Button>

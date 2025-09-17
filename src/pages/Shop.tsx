@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +20,8 @@ import {
   SlidersHorizontal,
   Grid3X3,
   List,
-  ChevronDown
+  ChevronDown,
+  Star
 } from "lucide-react";
 
 const Shop = ({ category }: { category?: string }) => {
@@ -28,6 +30,7 @@ const Shop = ({ category }: { category?: string }) => {
   const [priceRange, setPriceRange] = useState([0, 300]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>('featured');
 
   const { products: allProducts, loading } = useProducts(category);
 
@@ -65,6 +68,23 @@ const Shop = ({ category }: { category?: string }) => {
     }
     
     return true;
+  });
+
+  // Sort products
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'newest':
+        // Remove the created_at sort since it doesn't exist in Product interface
+        return 0;
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -186,12 +206,12 @@ const Shop = ({ category }: { category?: string }) => {
                   Filtres
                 </Button>
                 <p className="text-sm text-muted-foreground">
-                  {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+                  {sortedProducts.length} produit{sortedProducts.length > 1 ? 's' : ''} trouvé{sortedProducts.length > 1 ? 's' : ''}
                 </p>
               </div>
 
               <div className="flex items-center gap-4">
-                <Select defaultValue="featured">
+                <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Trier par" />
                   </SelectTrigger>
@@ -229,16 +249,69 @@ const Shop = ({ category }: { category?: string }) => {
             <div className={`grid gap-6 ${
               viewMode === 'grid' 
                 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
+                : 'grid-cols-1 max-w-4xl mx-auto'
             }`}>
               {loading ? (
                 // Loading skeletons
                 [...Array(6)].map((_, i) => (
                   <div key={i} className="bg-secondary/20 rounded-lg h-96 animate-pulse" />
                 ))
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <ProductCard key={product.id} {...product} />
+              ) : sortedProducts.length > 0 ? (
+                sortedProducts.map((product) => (
+                  viewMode === 'list' ? (
+                    <div key={product.id} className="flex bg-card rounded-lg shadow-soft overflow-hidden">
+                      <div className="flex-shrink-0 w-48 h-48">
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 p-6 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline" className="text-xs">
+                              {product.category}
+                            </Badge>
+                            <div className="flex items-center space-x-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${
+                                    i < (product.rating || 5) ? 'fill-accent text-accent' : 'text-muted-foreground'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <h3 className="font-medium text-lg mb-2">{product.name}</h3>
+                          <p className="text-muted-foreground text-sm mb-4">
+                            Tailles disponibles: {product.sizes.slice(0, 4).join(', ')}
+                            {product.sizes.length > 4 && ` +${product.sizes.length - 4}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-lg">
+                              {product.price.toFixed(2)} €
+                            </span>
+                            {product.isOnSale && product.originalPrice && product.originalPrice > product.price && (
+                              <span className="text-sm text-muted-foreground line-through">
+                                {product.originalPrice.toFixed(2)} €
+                              </span>
+                            )}
+                          </div>
+                          <Button asChild>
+                            <Link to={`/produit/${product.id}`}>
+                              Voir le produit
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <ProductCard key={product.id} {...product} />
+                  )
                 ))
               ) : (
                 <div className="col-span-full text-center py-12">
