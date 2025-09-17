@@ -71,9 +71,12 @@ const Header = () => {
             <Cart />
             {user ? (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">
-                  Bonjour, {user.user_metadata?.first_name || user.email}
-                </span>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/profile">
+                    <User className="h-4 w-4" />
+                    <span className="ml-2 text-sm">Profil</span>
+                  </Link>
+                </Button>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
                   <span className="ml-2 text-sm">Déconnexion</span>
