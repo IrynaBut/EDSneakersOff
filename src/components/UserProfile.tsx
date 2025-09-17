@@ -128,13 +128,13 @@ export const UserProfile = () => {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className={`grid w-full ${
-          profile.role === 'admin' ? 'grid-cols-4' : 
+          profile.role === 'admin' ? 'grid-cols-5' : 
           profile.role === 'vendeur' ? 'grid-cols-4' : 
           'grid-cols-4'
         }`}>
           <TabsTrigger value="overview">Aperçu</TabsTrigger>
           {profile.role === 'admin' && <TabsTrigger value="admin">Administration</TabsTrigger>}
-          {profile.role === 'vendeur' && <TabsTrigger value="vendor">Gestion</TabsTrigger>}
+          {(profile.role === 'vendeur' || profile.role === 'admin') && <TabsTrigger value="vendor">Gestion</TabsTrigger>}
           {profile.role === 'client' && <TabsTrigger value="loyalty">Fidélité</TabsTrigger>}
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="settings">Paramètres</TabsTrigger>
@@ -193,7 +193,7 @@ export const UserProfile = () => {
           </TabsContent>
         )}
 
-        {profile.role === 'vendeur' && (
+        {(profile.role === 'vendeur' || profile.role === 'admin') && (
           <TabsContent value="vendor">
             <VendorPanel />
           </TabsContent>
