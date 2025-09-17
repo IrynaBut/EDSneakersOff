@@ -18,6 +18,8 @@ import { UserProfile } from "./components/UserProfile";
 import ProductDetail from "./pages/ProductDetail";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
+import Management from "./pages/Management";
+import FAQ from "./components/FAQ";
 
 const queryClient = new QueryClient();
 
@@ -44,8 +46,12 @@ const App = () => (
                     <Route path="/produit/:id" element={<ProductDetail />} />
                     <Route path="/favoris" element={<Favorites />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/connexion" element={<Login />} />
+                    <Route path="/checkout" element={<Checkout />} />
                     <Route path="/commande" element={<Checkout />} />
+                    <Route path="/gestion" element={<Management />} />
+                    <Route path="/faq" element={<FAQ />} />
                     <Route path="/test-api" element={<TestAPI />} />
                     <Route path="/profile" element={<UserProfile />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

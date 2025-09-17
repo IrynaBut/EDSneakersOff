@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,27 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CreditCard, Truck, MapPin } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { items, totalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Vous devez être connecté pour passer commande.",
+        variant: "destructive"
+      });
+      navigate('/login');
+    }
+  }, [user, navigate, toast]);
   
   const [formData, setFormData] = useState({
     firstName: '',

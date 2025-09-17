@@ -88,15 +88,16 @@ export const useProducts = (category?: string, featured?: boolean) => {
             return bucketUrl;
           };
 
-          // Apply promotion pricing for first 20 products
+          // Apply promotion pricing for first 20 products with varying discounts
           let finalPrice = product.price;
           let originalPrice = product.original_price;
           let isOnSale = !!product.original_price && product.original_price > product.price;
           
           if (category === 'promotions') {
-            // Apply 10% discount for promotion category
+            // Apply varying discounts: 10%, 15%, or 20% based on product index
+            const discountRate = index % 3 === 0 ? 0.8 : index % 3 === 1 ? 0.85 : 0.9; // 20%, 15%, 10%
             originalPrice = product.price;
-            finalPrice = Math.round(product.price * 0.9);
+            finalPrice = Math.round(product.price * discountRate);
             isOnSale = true;
           }
 
@@ -115,7 +116,7 @@ export const useProducts = (category?: string, featured?: boolean) => {
             category: product.categories?.name || 
                      (product.gender === 'homme' ? 'Homme' : 
                       product.gender === 'femme' ? 'Femme' : 'Enfant'),
-            rating: 5, // Default rating
+            rating: [4, 4.5, 5, 4.5, 4, 5, 4.5, 4, 5][index % 9] || 4.5, // Realistic ratings
             isNew: isNewProduct,
             isOnSale: isOnSale,
             sizes: product.product_variants?.map(v => v.size).sort() || [],

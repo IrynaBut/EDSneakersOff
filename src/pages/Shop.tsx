@@ -54,9 +54,14 @@ const Shop = ({ category }: { category?: string }) => {
       return false;
     }
     
-    // Brand filter
-    if (selectedBrands.length > 0 && product.brand && !selectedBrands.includes(product.brand)) {
-      return false;
+    // Brand filter - fix case sensitivity and matching
+    if (selectedBrands.length > 0) {
+      if (!product.brand || !selectedBrands.some(brand => 
+        product.brand?.toLowerCase().includes(brand.toLowerCase()) || 
+        brand.toLowerCase().includes(product.brand?.toLowerCase() || '')
+      )) {
+        return false;
+      }
     }
     
     return true;
@@ -65,7 +70,7 @@ const Shop = ({ category }: { category?: string }) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-secondary/30 py-12">
+      <div className="bg-secondary/30 py-8">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{categoryTitle}</h1>

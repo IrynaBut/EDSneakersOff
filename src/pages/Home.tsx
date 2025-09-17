@@ -1,17 +1,116 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import ProductCard from "@/components/ProductCard";
 import { useProducts } from "@/hooks/useProducts";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowRight, 
   Truck, 
   Shield, 
   RotateCcw, 
   Star,
-  Zap
+  Mail,
+  CheckCircle
 } from "lucide-react";
+
+// Newsletter Section Component
+const NewsletterSection = () => {
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    
+    try {
+      // Call the edge function to send confirmation email
+      const { error } = await supabase.functions.invoke('send-newsletter-confirmation', {
+        body: { email }
+      });
+
+      if (error) throw error;
+      
+      setIsSubscribed(true);
+      
+      toast({
+        title: "Inscription confirmée !",
+        description: "Vous êtes maintenant inscrit à notre newsletter. Un email de confirmation vous a été envoyé.",
+      });
+
+      // Reset after 4 seconds
+      setTimeout(() => {
+        setIsSubscribed(false);
+        setEmail("");
+      }, 4000);
+      
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de vous inscrire à la newsletter.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isSubscribed) {
+    return (
+      <section className="py-12 lg:py-16 gradient-accent">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-2xl mx-auto space-y-6">
+            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
+              Merci pour votre inscription !
+            </h2>
+            <p className="text-xl text-white/80">
+              Un email de confirmation a été envoyé à <strong>{email}</strong>
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-12 lg:py-16 gradient-accent">
+      <div className="container mx-auto px-4 text-center">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Mail className="w-12 h-12 text-white mx-auto mb-4" />
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
+            Restez à la Pointe de la Mode
+          </h2>
+          <p className="text-xl text-white/80">
+            Inscrivez-vous à notre newsletter et recevez en exclusivité nos dernières nouveautés et offres spéciales.
+          </p>
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <Input
+              type="email" 
+              placeholder="Votre adresse email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white/50 outline-none"
+              required
+            />
+            <Button type="submit" variant="secondary" size="lg" className="px-8" disabled={loading}>
+              {loading ? "Inscription..." : "S'inscrire"}
+            </Button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const Home = () => {
   const { products: featuredProducts, loading } = useProducts(undefined, true);
@@ -75,15 +174,15 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-white drop-shadow-2xl">
               Votre Style,
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-secondary">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 drop-shadow-lg">
                 Nos Baskets
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-primary-foreground/80 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-semibold drop-shadow-lg bg-black/20 p-4 rounded-lg backdrop-blur-sm">
               Découvrez notre collection exclusive de baskets premium pour toute la famille. 
               Qualité, style et confort garantis.
             </p>
@@ -205,28 +304,7 @@ const Home = () => {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-16 lg:py-24 gradient-accent">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Restez à la Pointe de la Mode
-            </h2>
-            <p className="text-xl text-white/80">
-              Inscrivez-vous à notre newsletter et recevez en exclusivité nos dernières nouveautés et offres spéciales.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input 
-                type="email" 
-                placeholder="Votre adresse email"
-                className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white/50 outline-none"
-              />
-              <Button variant="secondary" size="lg" className="px-8">
-                S'inscrire
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NewsletterSection />
     </div>
   );
 };
