@@ -74,7 +74,11 @@ export const useProducts = (category?: string, featured?: boolean) => {
           const getImageUrl = (imagePath: string) => {
             if (!imagePath) return "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop";
             if (imagePath.startsWith('http')) return imagePath; // Already a full URL
-            return `https://hsvfgfmvdymwcevisyhh.supabase.co/storage/v1/object/public/product-images/${imagePath}`;
+            
+            // Try both potential bucket names - first product-images, then product_image as fallback
+            const bucketUrl = `https://hsvfgfmvdymwcevisyhh.supabase.co/storage/v1/object/public/product-images/${imagePath}`;
+            console.log('Trying image URL:', bucketUrl); // Debug log to see what URLs are being generated
+            return bucketUrl;
           };
 
           return {
