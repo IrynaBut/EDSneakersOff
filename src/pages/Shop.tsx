@@ -37,7 +37,9 @@ const Shop = ({ category }: { category?: string }) => {
   const categoryTitle = category ? 
     (category === "homme" ? "Collection Homme" :
      category === "femme" ? "Collection Femme" :
-     category === "enfant" ? "Collection Enfant" : "Tous les Produits") 
+     category === "enfant" ? "Collection Enfant" :
+     category === "promotions" ? "Promotions - Jusqu'à -20%" :
+     category === "nouveautes" ? "Nouveautés" : "Tous les Produits") 
     : "Tous les Produits";
 
   // Apply filters to products

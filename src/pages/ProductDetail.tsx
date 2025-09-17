@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Heart, Star, Truck, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
+import { useFavorites } from "@/hooks/useFavorites";
 import { useToast } from "@/hooks/use-toast";
 
 interface Product {
@@ -30,6 +31,7 @@ interface Product {
 const ProductDetail = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { toast } = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -204,7 +206,7 @@ const ProductDetail = () => {
                   <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">(4.8/5 - 124 avis)</span>
+              <span className="text-sm text-muted-foreground">(4.8/5 - 2 avis)</span>
             </div>
 
             {/* Price */}
@@ -248,8 +250,18 @@ const ProductDetail = () => {
               >
                 Ajouter au panier - {product.price}€
               </Button>
-              <Button size="lg" variant="outline">
-                <Heart className="w-5 h-5" />
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => {
+                  if (product && isFavorite(product.id)) {
+                    removeFromFavorites(product.id);
+                  } else if (product) {
+                    addToFavorites(product.id);
+                  }
+                }}
+              >
+                <Heart className={`w-5 h-5 ${product && isFavorite(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
             </div>
 
@@ -280,12 +292,14 @@ const ProductDetail = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Description du produit</h3>
                   <div className="prose prose-sm max-w-none">
-                    <p>{product.description || "Sneaker de haute qualité alliant style et confort. Parfaite pour un usage quotidien ou sportif."}</p>
-                    <ul className="mt-4">
-                      <li>Matériaux premium</li>
-                      <li>Semelle confortable</li>
-                      <li>Design moderne</li>
-                      <li>Disponible en plusieurs tailles</li>
+                    <p className="mb-4">{product.description || "Sneaker de haute qualité alliant style et confort. Parfaite pour un usage quotidien ou sportif."}</p>
+                    <ul className="space-y-2">
+                      <li>• Matériaux premium sélectionnés pour leur durabilité</li>
+                      <li>• Semelle ultra-confortable pour un port prolongé</li>
+                      <li>• Design moderne et tendance</li>
+                      <li>• Technologie avancée d'amorti</li>
+                      <li>• Disponible en plusieurs tailles et couleurs</li>
+                      <li>• Parfait pour le sport et le quotidien</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -295,52 +309,52 @@ const ProductDetail = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Guide des tailles</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-border">
+                  <div className="overflow-x-auto flex justify-center">
+                    <table className="border-collapse border border-border">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="border-r border-border p-2 text-left">EU</th>
-                          <th className="border-r border-border p-2 text-left">US</th>
-                          <th className="border-r border-border p-2 text-left">UK</th>
-                          <th className="p-2 text-left">Longueur (cm)</th>
+                          <th className="border-r border-border p-3 text-center w-20">EU</th>
+                          <th className="border-r border-border p-3 text-center w-20">US</th>
+                          <th className="border-r border-border p-3 text-center w-20">UK</th>
+                          <th className="p-3 text-center w-32">Longueur (cm)</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">39</td>
-                          <td className="border-r border-border p-2">6.5</td>
-                          <td className="border-r border-border p-2">6</td>
-                          <td className="p-2">24.5</td>
+                          <td className="border-r border-border p-3 text-center">39</td>
+                          <td className="border-r border-border p-3 text-center">6.5</td>
+                          <td className="border-r border-border p-3 text-center">6</td>
+                          <td className="p-3 text-center">24.5</td>
                         </tr>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">40</td>
-                          <td className="border-r border-border p-2">7</td>
-                          <td className="border-r border-border p-2">6.5</td>
-                          <td className="p-2">25</td>
+                          <td className="border-r border-border p-3 text-center">40</td>
+                          <td className="border-r border-border p-3 text-center">7</td>
+                          <td className="border-r border-border p-3 text-center">6.5</td>
+                          <td className="p-3 text-center">25</td>
                         </tr>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">41</td>
-                          <td className="border-r border-border p-2">7.5</td>
-                          <td className="border-r border-border p-2">7</td>
-                          <td className="p-2">25.5</td>
+                          <td className="border-r border-border p-3 text-center">41</td>
+                          <td className="border-r border-border p-3 text-center">7.5</td>
+                          <td className="border-r border-border p-3 text-center">7</td>
+                          <td className="p-3 text-center">25.5</td>
                         </tr>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">42</td>
-                          <td className="border-r border-border p-2">8</td>
-                          <td className="border-r border-border p-2">7.5</td>
-                          <td className="p-2">26</td>
+                          <td className="border-r border-border p-3 text-center">42</td>
+                          <td className="border-r border-border p-3 text-center">8</td>
+                          <td className="border-r border-border p-3 text-center">7.5</td>
+                          <td className="p-3 text-center">26</td>
                         </tr>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">43</td>
-                          <td className="border-r border-border p-2">9</td>
-                          <td className="border-r border-border p-2">8.5</td>
-                          <td className="p-2">27</td>
+                          <td className="border-r border-border p-3 text-center">43</td>
+                          <td className="border-r border-border p-3 text-center">9</td>
+                          <td className="border-r border-border p-3 text-center">8.5</td>
+                          <td className="p-3 text-center">27</td>
                         </tr>
                         <tr className="border-b border-border">
-                          <td className="border-r border-border p-2">44</td>
-                          <td className="border-r border-border p-2">10</td>
-                          <td className="border-r border-border p-2">9.5</td>
-                          <td className="p-2">28</td>
+                          <td className="border-r border-border p-3 text-center">44</td>
+                          <td className="border-r border-border p-3 text-center">10</td>
+                          <td className="border-r border-border p-3 text-center">9.5</td>
+                          <td className="p-3 text-center">28</td>
                         </tr>
                       </tbody>
                     </table>
@@ -379,6 +393,11 @@ const ProductDetail = () => {
                       </div>
                       <p className="text-sm">Très beau design, taille correctement. Livraison rapide.</p>
                     </div>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Button variant="outline" size="sm">
+                      Voir plus d'avis
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

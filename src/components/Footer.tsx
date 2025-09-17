@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
 import { 
   Facebook, 
   Instagram, 
@@ -12,9 +13,20 @@ import {
   MapPin
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { NewsletterModal } from "./NewsletterModal";
+import { SupportModal } from "./SupportModal";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [newsletterOpen, setNewsletterOpen] = useState(false);
+  const [supportModal, setSupportModal] = useState<{
+    open: boolean;
+    type: 'delivery' | 'support' | 'faq' | 'legal' | 'cgv' | 'privacy' | 'cookies' | 'size-guide';
+  }>({ open: false, type: 'support' });
+
+  const openSupportModal = (type: typeof supportModal.type) => {
+    setSupportModal({ open: true, type });
+  };
   
   return (
     <footer className="bg-primary text-primary-foreground">
@@ -31,17 +43,25 @@ const Footer = () => {
               Découvrez notre collection exclusive pour homme, femme et enfant.
             </p>
             <div className="flex space-x-4">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Facebook className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <a href="https://www.facebook.com/?locale=fr_FR" target="_blank" rel="noopener noreferrer">
+                  <Facebook className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Instagram className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
+                  <Instagram className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Twitter className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <a href="https://x.com/?lang=fr" target="_blank" rel="noopener noreferrer">
+                  <Twitter className="h-4 w-4" />
+                </a>
               </Button>
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Youtube className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10" asChild>
+                <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">
+                  <Youtube className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </div>
@@ -83,27 +103,39 @@ const Footer = () => {
             <h3 className="text-lg font-semibold">Support</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/contact" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                <button 
+                  onClick={() => openSupportModal('support')}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors text-left"
+                >
                   Nous Contacter
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/livraison" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                <button 
+                  onClick={() => openSupportModal('delivery')}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors text-left"
+                >
                   Livraison & Retours
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/guide-tailles" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                <button 
+                  onClick={() => openSupportModal('size-guide')}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors text-left"
+                >
                   Guide des Tailles
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/faq" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                <button 
+                  onClick={() => openSupportModal('faq')}
+                  className="text-primary-foreground/80 hover:text-primary-foreground transition-colors text-left"
+                >
                   FAQ
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/mon-compte" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                <Link to="/profile" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Mon Compte
                 </Link>
               </li>
@@ -122,7 +154,7 @@ const Footer = () => {
                 placeholder="Votre email"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
               />
-              <Button variant="secondary" size="sm">
+              <Button variant="secondary" size="sm" onClick={() => setNewsletterOpen(true)}>
                 <Mail className="h-4 w-4" />
               </Button>
             </div>
@@ -153,21 +185,44 @@ const Footer = () => {
             © {currentYear} ED Sneakers. Tous droits réservés.
           </div>
           <div className="flex flex-wrap gap-6 text-sm">
-            <Link to="/mentions-legales" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            <button 
+              onClick={() => openSupportModal('legal')}
+              className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            >
               Mentions Légales
-            </Link>
-            <Link to="/cgv" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            </button>
+            <button 
+              onClick={() => openSupportModal('cgv')}
+              className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            >
               CGV
-            </Link>
-            <Link to="/politique-confidentialite" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            </button>
+            <button 
+              onClick={() => openSupportModal('privacy')}
+              className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            >
               Politique de Confidentialité
-            </Link>
-            <Link to="/cookies" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            </button>
+            <button 
+              onClick={() => openSupportModal('cookies')}
+              className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+            >
               Cookies
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <NewsletterModal 
+        open={newsletterOpen} 
+        onOpenChange={setNewsletterOpen} 
+      />
+      <SupportModal 
+        open={supportModal.open} 
+        onOpenChange={(open) => setSupportModal(prev => ({ ...prev, open }))}
+        type={supportModal.type}
+      />
     </footer>
   );
 };

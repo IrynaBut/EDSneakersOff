@@ -20,19 +20,19 @@ const Home = () => {
     {
       name: "Collection Homme",
       href: "/homme",
-      image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&h=400&fit=crop",
+      image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=928&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       description: "Découvrez notre sélection exclusive"
     },
     {
       name: "Collection Femme", 
       href: "/femme",
-      image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&h=400&fit=crop",
+      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       description: "Style et confort à chaque pas"
     },
     {
       name: "Collection Enfant",
       href: "/enfant", 
-      image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=600&h=400&fit=crop",
+      image: "https://images.unsplash.com/photo-1698108223374-703700c45239?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       description: "Pour les petits aventuriers"
     }
   ];
@@ -63,13 +63,17 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-hero text-primary-foreground py-20 lg:py-32">
+      <section 
+        className="relative overflow-hidden text-primary-foreground py-16 lg:py-20"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1678266622924-c7c38ddc25e1?q=80&w=1748&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <Badge variant="secondary" className="mb-4 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
-              <Zap className="h-3 w-3 mr-1" />
-              Nouveautés disponibles
-            </Badge>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
               Votre Style,
@@ -91,9 +95,10 @@ const Home = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                <Link to="/homme">
-                  Explorer la Collection
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong bg-white text-primary hover:bg-white/90" asChild>
+                <Link to="/produits">
+                  Explorer nos Collections
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>

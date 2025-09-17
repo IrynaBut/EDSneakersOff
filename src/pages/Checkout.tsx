@@ -1,198 +1,126 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/hooks/useCart';
-import { useOrders, CreateOrderData } from '@/hooks/useOrders';
-import { ShoppingCart, CreditCard, MapPin, User, AlertCircle } from 'lucide-react';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, CreditCard, Truck, MapPin } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/hooks/use-toast";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { items, totalAmount, loading: cartLoading } = useCart();
-  const { createOrder, loading: orderLoading } = useOrders();
-
-  const [sameAsShipping, setSameAsShipping] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateOrderData>({
-    billing_address: {
-      first_name: '',
-      last_name: '',
-      email: user?.email || '',
-      phone: '',
-      address_line_1: '',
-      address_line_2: '',
-      city: '',
-      postal_code: '',
-      country: 'France'
-    },
-    shipping_address: {
-      first_name: '',
-      last_name: '',
-      address_line_1: '',
-      address_line_2: '',
-      city: '',
-      postal_code: '',
-      country: 'France'
-    },
-    payment_method: 'card',
+  const { toast } = useToast();
+  const { items, getTotalPrice, clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: 'France',
+    paymentMethod: 'card',
     notes: ''
   });
 
-  // Redirect if not authenticated or cart is empty
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    } else if (items.length === 0 && !cartLoading) {
-      navigate('/produits');
-    }
-  }, [user, items, cartLoading, navigate]);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
-  const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop";
-    if (imagePath.startsWith('http')) return imagePath;
-    return `https://hsvfgfmvdymwcevisyhh.supabase.co/storage/v1/object/public/product-images/${imagePath}`;
-  };
-
-  const handleInputChange = (section: 'billing_address' | 'shipping_address', field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
-      }
-    }));
-  };
-
-  const handleSameAsShippingChange = (checked: boolean) => {
-    setSameAsShipping(checked);
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        shipping_address: {
-          ...prev.billing_address,
-          email: undefined as any // Remove email from shipping
-        }
-      }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const { billing_address, shipping_address } = formData;
-    
-    // Required billing fields
-    if (!billing_address.first_name || !billing_address.last_name || 
-        !billing_address.email || !billing_address.address_line_1 || 
-        !billing_address.city || !billing_address.postal_code) {
-      setError('Veuillez remplir tous les champs obligatoires de facturation');
-      return false;
-    }
-
-    // Required shipping fields
-    if (!sameAsShipping) {
-      if (!shipping_address.first_name || !shipping_address.last_name || 
-          !shipping_address.address_line_1 || !shipping_address.city || 
-          !shipping_address.postal_code) {
-        setError('Veuillez remplir tous les champs obligatoires de livraison');
-        return false;
-      }
-    }
-
-    return true;
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setLoading(true);
 
-    if (!validateForm()) return;
-
-    const orderData = {
-      ...formData,
-      shipping_address: sameAsShipping ? {
-        first_name: formData.billing_address.first_name,
-        last_name: formData.billing_address.last_name,
-        address_line_1: formData.billing_address.address_line_1,
-        address_line_2: formData.billing_address.address_line_2,
-        city: formData.billing_address.city,
-        postal_code: formData.billing_address.postal_code,
-        country: formData.billing_address.country
-      } : formData.shipping_address
-    };
-
-    const { order, error } = await createOrder(orderData);
-    
-    if (error) {
-      setError(error);
-    } else if (order) {
-      // Redirect to order confirmation or payment
-      navigate(`/commande/${order.id}`);
+    try {
+      // Simulate order processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Clear cart
+      await clearCart();
+      
+      toast({
+        title: "Commande confirmée !",
+        description: "Votre commande a été enregistrée avec succès. Vous recevrez une confirmation par email.",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du traitement de votre commande.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (cartLoading) {
+  if (items.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold mb-4">Votre panier est vide</h1>
+            <p className="text-muted-foreground mb-6">
+              Ajoutez des produits à votre panier avant de passer commande.
+            </p>
+            <Button asChild>
+              <Link to="/">
+                Continuer mes achats
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Finaliser la commande</h1>
-          <p className="text-muted-foreground">Complétez vos informations pour passer votre commande</p>
-        </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <Button variant="ghost" asChild className="mb-6">
+          <Link to="/">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour
+          </Link>
+        </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Order Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Billing Address */}
+        <h1 className="text-3xl font-bold mb-8">Finaliser votre Commande</h1>
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Adresse de facturation
+                  <CardTitle className="flex items-center">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    Adresse de Livraison
                   </CardTitle>
-                  <CardDescription>
-                    Informations nécessaires pour la facturation
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="billing-first-name">Prénom *</Label>
+                      <Label htmlFor="firstName">Prénom *</Label>
                       <Input
-                        id="billing-first-name"
-                        value={formData.billing_address.first_name}
-                        onChange={(e) => handleInputChange('billing_address', 'first_name', e.target.value)}
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="billing-last-name">Nom *</Label>
+                      <Label htmlFor="lastName">Nom *</Label>
                       <Input
-                        id="billing-last-name"
-                        value={formData.billing_address.last_name}
-                        onChange={(e) => handleInputChange('billing_address', 'last_name', e.target.value)}
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
                         required
                       />
                     </div>
@@ -200,310 +128,153 @@ const Checkout = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="billing-email">Email *</Label>
+                      <Label htmlFor="email">Email *</Label>
                       <Input
-                        id="billing-email"
+                        id="email"
                         type="email"
-                        value={formData.billing_address.email}
-                        onChange={(e) => handleInputChange('billing_address', 'email', e.target.value)}
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="billing-phone">Téléphone</Label>
+                      <Label htmlFor="phone">Téléphone</Label>
                       <Input
-                        id="billing-phone"
+                        id="phone"
                         type="tel"
-                        value={formData.billing_address.phone}
-                        onChange={(e) => handleInputChange('billing_address', 'phone', e.target.value)}
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="billing-address1">Adresse *</Label>
+                    <Label htmlFor="address">Adresse *</Label>
                     <Input
-                      id="billing-address1"
-                      value={formData.billing_address.address_line_1}
-                      onChange={(e) => handleInputChange('billing_address', 'address_line_1', e.target.value)}
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
                       required
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="billing-address2">Adresse (ligne 2)</Label>
-                    <Input
-                      id="billing-address2"
-                      value={formData.billing_address.address_line_2}
-                      onChange={(e) => handleInputChange('billing_address', 'address_line_2', e.target.value)}
-                    />
-                  </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="billing-city">Ville *</Label>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="city">Ville *</Label>
                       <Input
-                        id="billing-city"
-                        value={formData.billing_address.city}
-                        onChange={(e) => handleInputChange('billing_address', 'city', e.target.value)}
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="billing-postal">Code postal *</Label>
+                      <Label htmlFor="postalCode">Code Postal *</Label>
                       <Input
-                        id="billing-postal"
-                        value={formData.billing_address.postal_code}
-                        onChange={(e) => handleInputChange('billing_address', 'postal_code', e.target.value)}
+                        id="postalCode"
+                        value={formData.postalCode}
+                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
                         required
                       />
-                    </div>
-                    <div>
-                      <Label htmlFor="billing-country">Pays *</Label>
-                      <Select
-                        value={formData.billing_address.country}
-                        onValueChange={(value) => handleInputChange('billing_address', 'country', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="France">France</SelectItem>
-                          <SelectItem value="Belgique">Belgique</SelectItem>
-                          <SelectItem value="Suisse">Suisse</SelectItem>
-                          <SelectItem value="Canada">Canada</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Shipping Address */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Adresse de livraison
+                  <CardTitle className="flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    Méthode de Paiement
                   </CardTitle>
-                  <CardDescription>
-                    Où souhaitez-vous recevoir votre commande ?
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="same-as-billing"
-                      checked={sameAsShipping}
-                      onCheckedChange={handleSameAsShippingChange}
-                    />
-                    <Label htmlFor="same-as-billing">
-                      Identique à l'adresse de facturation
-                    </Label>
-                  </div>
-
-                  {!sameAsShipping && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="shipping-first-name">Prénom *</Label>
-                          <Input
-                            id="shipping-first-name"
-                            value={formData.shipping_address.first_name}
-                            onChange={(e) => handleInputChange('shipping_address', 'first_name', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="shipping-last-name">Nom *</Label>
-                          <Input
-                            id="shipping-last-name"
-                            value={formData.shipping_address.last_name}
-                            onChange={(e) => handleInputChange('shipping_address', 'last_name', e.target.value)}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="shipping-address1">Adresse *</Label>
-                        <Input
-                          id="shipping-address1"
-                          value={formData.shipping_address.address_line_1}
-                          onChange={(e) => handleInputChange('shipping_address', 'address_line_1', e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="shipping-address2">Adresse (ligne 2)</Label>
-                        <Input
-                          id="shipping-address2"
-                          value={formData.shipping_address.address_line_2}
-                          onChange={(e) => handleInputChange('shipping_address', 'address_line_2', e.target.value)}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <Label htmlFor="shipping-city">Ville *</Label>
-                          <Input
-                            id="shipping-city"
-                            value={formData.shipping_address.city}
-                            onChange={(e) => handleInputChange('shipping_address', 'city', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="shipping-postal">Code postal *</Label>
-                          <Input
-                            id="shipping-postal"
-                            value={formData.shipping_address.postal_code}
-                            onChange={(e) => handleInputChange('shipping_address', 'postal_code', e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="shipping-country">Pays *</Label>
-                          <Select
-                            value={formData.shipping_address.country}
-                            onValueChange={(value) => handleInputChange('shipping_address', 'country', value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="France">France</SelectItem>
-                              <SelectItem value="Belgique">Belgique</SelectItem>
-                              <SelectItem value="Suisse">Suisse</SelectItem>
-                              <SelectItem value="Canada">Canada</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Payment Method */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Mode de paiement
-                  </CardTitle>
-                  <CardDescription>
-                    Choisissez votre mode de paiement préféré
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Select
-                    value={formData.payment_method}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, payment_method: value }))}
+                  <RadioGroup 
+                    value={formData.paymentMethod} 
+                    onValueChange={(value) => handleInputChange('paymentMethod', value)}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="card">Carte bancaire</SelectItem>
-                      <SelectItem value="paypal">PayPal</SelectItem>
-                      <SelectItem value="bank_transfer">Virement bancaire</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="card" id="card" />
+                      <Label htmlFor="card">Carte bancaire (simulation)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="paypal" id="paypal" />
+                      <Label htmlFor="paypal">PayPal (simulation)</Label>
+                    </div>
+                  </RadioGroup>
                 </CardContent>
               </Card>
 
-              {/* Notes */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Notes de commande</CardTitle>
-                  <CardDescription>
-                    Informations supplémentaires pour votre commande (optionnel)
-                  </CardDescription>
+                  <CardTitle>Notes de Commande</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Textarea
-                    placeholder="Instructions de livraison, préférences, etc."
+                    placeholder="Instructions spéciales pour la livraison..."
                     value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    rows={3}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
                   />
                 </CardContent>
               </Card>
+            </div>
 
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                size="lg"
-                disabled={orderLoading}
-              >
-                {orderLoading ? 'Création...' : 'Passer la commande'}
-              </Button>
-            </form>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  Résumé de commande
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={getImageUrl(item.product_image || '')}
-                        alt={item.product_name || 'Produit'}
-                        className="h-12 w-12 rounded-md object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {item.product_name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Taille: {item.variant_size} • Qté: {item.quantity}
-                      </p>
-                    </div>
-                    <div className="text-sm font-medium">
-                      {formatPrice((item.product_price || 0) * item.quantity)}
-                    </div>
+            <div>
+              <Card className="sticky top-24">
+                <CardHeader>
+                  <CardTitle>Récapitulatif de Commande</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    {items.map((item) => (
+                      <div key={item.id} className="flex justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium">{item.product?.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Taille: {item.variant?.size} × {item.quantity}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">{item.product?.price * item.quantity}€</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
 
-                <Separator />
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Sous-total</span>
-                    <span>{formatPrice(totalAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Livraison</span>
-                    <span>Gratuite</span>
-                  </div>
                   <Separator />
-                  <div className="flex justify-between text-base font-semibold">
-                    <span>Total</span>
-                    <span>{formatPrice(totalAmount)}</span>
+
+                  <div className="flex justify-between">
+                    <span className="flex items-center">
+                      <Truck className="w-4 h-4 mr-2" />
+                      Livraison
+                    </span>
+                    <span className="text-green-600 font-medium">Gratuite</span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+
+                  <Separator />
+
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span>{getTotalPrice()}€</span>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    size="lg"
+                    disabled={loading}
+                  >
+                    {loading ? "Traitement..." : `Confirmer la Commande - ${getTotalPrice()}€`}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    En validant votre commande, vous acceptez nos conditions générales de vente.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
