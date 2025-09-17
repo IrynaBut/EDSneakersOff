@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, totalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -229,13 +229,13 @@ const Checkout = () => {
                     {items.map((item) => (
                       <div key={item.id} className="flex justify-between">
                         <div className="flex-1">
-                          <p className="font-medium">{item.product?.name}</p>
+                          <p className="font-medium">{item.product_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Taille: {item.variant?.size} × {item.quantity}
+                            Taille: {item.variant_size} × {item.quantity}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">{item.product?.price * item.quantity}€</p>
+                          <p className="font-medium">{(item.product_price || 0) * item.quantity}€</p>
                         </div>
                       </div>
                     ))}
@@ -255,7 +255,7 @@ const Checkout = () => {
 
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>{getTotalPrice()}€</span>
+                    <span>{totalAmount}€</span>
                   </div>
 
                   <Button 
@@ -264,7 +264,7 @@ const Checkout = () => {
                     size="lg"
                     disabled={loading}
                   >
-                    {loading ? "Traitement..." : `Confirmer la Commande - ${getTotalPrice()}€`}
+                    {loading ? "Traitement..." : `Confirmer la Commande - ${totalAmount}€`}
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
