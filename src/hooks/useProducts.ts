@@ -69,26 +69,35 @@ export const useProducts = (category?: string, featured?: boolean) => {
         if (error) throw error;
 
         // Transform data to match ProductCard interface
-        const transformedProducts: Product[] = data?.map(product => ({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.original_price,
-          image: product.main_image_url || 
-                 (product.images && product.images.length > 0 ? product.images[0] : 
-                 "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop"),
-          category: product.categories?.name || 
-                   (product.gender === 'homme' ? 'Homme' : 
-                    product.gender === 'femme' ? 'Femme' : 'Enfant'),
-          rating: 5, // Default rating
-          isNew: new Date(product.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000), // New if less than 7 days old
-          isOnSale: !!product.original_price && product.original_price > product.price,
-          sizes: product.product_variants?.map(v => v.size).sort() || [],
-          brand: product.brand,
-          gender: product.gender,
-          description: product.description,
-          variants: product.product_variants || []
-        })) || [];
+        const transformedProducts: Product[] = data?.map(product => {
+          // Construct Supabase Storage URL for images
+          const getImageUrl = (imagePath: string) => {
+            if (!imagePath) return "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop";
+            if (imagePath.startsWith('http')) return imagePath; // Already a full URL
+            return `https://hsvfgfmvdymwcevisyhh.supabase.co/storage/v1/object/public/product-images/${imagePath}`;
+          };
+
+          return {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            originalPrice: product.original_price,
+            image: getImageUrl(product.main_image_url) || 
+                   (product.images && product.images.length > 0 ? getImageUrl(product.images[0]) : 
+                   "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop"),
+            category: product.categories?.name || 
+                     (product.gender === 'homme' ? 'Homme' : 
+                      product.gender === 'femme' ? 'Femme' : 'Enfant'),
+            rating: 5, // Default rating
+            isNew: new Date(product.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000), // New if less than 7 days old
+            isOnSale: !!product.original_price && product.original_price > product.price,
+            sizes: product.product_variants?.map(v => v.size).sort() || [],
+            brand: product.brand,
+            gender: product.gender,
+            description: product.description,
+            variants: product.product_variants || []
+          };
+        }) || [];
 
         setProducts(transformedProducts);
       } catch (err) {
