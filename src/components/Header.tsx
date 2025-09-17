@@ -8,13 +8,17 @@ import {
   Search, 
   Menu, 
   X,
-  Heart
+  Heart,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import Cart from "@/components/Cart";
 import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
   
   const navigation = [
     { name: "Accueil", href: "/" },
@@ -25,6 +29,10 @@ const Header = () => {
   ];
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -60,21 +68,25 @@ const Header = () => {
             <Button variant="ghost" size="sm" className="relative">
               <Heart className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="relative">
-              <ShoppingCart className="h-4 w-4" />
-              <Badge 
-                variant="secondary" 
-                className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-accent text-accent-foreground"
-              >
-                0
-              </Badge>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/connexion">
-                <User className="h-4 w-4" />
-                <span className="ml-2 text-sm">Connexion</span>
-              </Link>
-            </Button>
+            <Cart />
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">
+                  Bonjour, {user.user_metadata?.first_name || user.email}
+                </span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  <span className="ml-2 text-sm">Déconnexion</span>
+                </Button>
+              </div>
+            ) : (
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/auth">
+                  <User className="h-4 w-4" />
+                  <span className="ml-2 text-sm">Connexion</span>
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -113,20 +125,20 @@ const Header = () => {
                 <Button variant="ghost" size="sm">
                   <Heart className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="relative">
-                  <ShoppingCart className="h-4 w-4" />
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-accent text-accent-foreground"
-                  >
-                    0
-                  </Badge>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/connexion">
-                    <User className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <Cart />
+                {user ? (
+                  <div className="flex items-center justify-center">
+                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/auth">
+                      <User className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </div>

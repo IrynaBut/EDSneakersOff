@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, ShoppingCart, Eye, Star } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
+
+interface ProductVariant {
+  id: string;
+  size: string;
+  color?: string;
+  sku?: string;
+  stock_quantity: number;
+}
 
 interface ProductCardProps {
   id: string;
@@ -16,6 +26,7 @@ interface ProductCardProps {
   isNew?: boolean;
   isOnSale?: boolean;
   sizes: string[];
+  variants?: ProductVariant[];
 }
 
 const ProductCard = ({ 
@@ -28,12 +39,29 @@ const ProductCard = ({
   rating = 5,
   isNew = false,
   isOnSale = false,
-  sizes 
+  sizes,
+  variants = []
 }: ProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const { addToCart } = useCart();
 
   const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+
+  const handleAddToCart = async () => {
+    if (!variants || variants.length === 0) {
+      toast.error('Aucune variante disponible pour ce produit');
+      return;
+    }
+
+    // Use the first available variant for quick add
+    const firstVariant = variants.find(v => v.stock_quantity > 0);
+    if (firstVariant) {
+      await addToCart(id, firstVariant.id);
+    } else {
+      toast.error('Produit non disponible');
+    }
+  };
 
   return (
     <Card 
@@ -100,6 +128,7 @@ const ProductCard = ({
               variant="default" 
               className="w-full shadow-soft"
               size="sm"
+              onClick={handleAddToCart}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               Ajouter au panier
