@@ -174,15 +174,13 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-white drop-shadow-2xl">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white mb-6">
               Votre Style,
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 drop-shadow-lg">
-                Nos Baskets
-              </span>
+              Nos Baskets
             </h1>
             
-            <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto font-semibold drop-shadow-2xl">
+            <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto">
               Découvrez notre collection exclusive de baskets premium pour toute la famille. 
               Qualité, style et confort garantis.
             </p>
