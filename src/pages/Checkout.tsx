@@ -8,11 +8,12 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, CreditCard, Truck, MapPin, Lock, Calendar } from "lucide-react";
+import { ArrowLeft, CreditCard, Truck, MapPin, Lock, Calendar, Package } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useOrders } from "@/hooks/useOrders";
+import { PickupPointModal } from "@/components/PickupPointModal";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const Checkout = () => {
   }, [user, navigate, toast]);
   
   const [formData, setFormData] = useState({
+    // Shipping
+    shippingType: 'home', // 'home' or 'pickup'
     firstName: '',
     lastName: '',
     email: '',
@@ -43,6 +46,17 @@ const Checkout = () => {
     city: '',
     postalCode: '',
     country: 'France',
+    // Billing (separate from shipping)
+    billingFirstName: '',
+    billingLastName: '',
+    billingEmail: '',
+    billingPhone: '',
+    billingAddress: '',
+    billingCity: '',
+    billingPostalCode: '',
+    billingCountry: 'France',
+    sameBillingAddress: true,
+    // Payment
     paymentMethod: 'card',
     notes: '',
     cgvAccepted: false,
@@ -52,6 +66,9 @@ const Checkout = () => {
     cvv: '',
     cardName: ''
   });
+  
+  const [selectedPickupPoint, setSelectedPickupPoint] = useState<any>(null);
+  const [pickupPointModal, setPickupPointModal] = useState(false);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -107,25 +124,54 @@ const Checkout = () => {
 
     try {
       // Create order data
+      let shipping_address;
+      
+      if (formData.shippingType === 'pickup' && selectedPickupPoint) {
+        shipping_address = {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          address_line_1: selectedPickupPoint.name,
+          address_line_2: selectedPickupPoint.address,
+          city: selectedPickupPoint.city,
+          postal_code: selectedPickupPoint.postalCode,
+          country: 'France',
+          is_pickup_point: true
+        };
+      } else {
+        shipping_address = {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          address_line_1: formData.address,
+          city: formData.city,
+          postal_code: formData.postalCode,
+          country: formData.country,
+          is_pickup_point: false
+        };
+      }
+
+      const billing_address = formData.sameBillingAddress ? {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address_line_1: formData.address,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        country: formData.country
+      } : {
+        first_name: formData.billingFirstName,
+        last_name: formData.billingLastName,
+        email: formData.billingEmail,
+        phone: formData.billingPhone,
+        address_line_1: formData.billingAddress,
+        city: formData.billingCity,
+        postal_code: formData.billingPostalCode,
+        country: formData.billingCountry
+      };
+
       const orderData = {
-        shipping_address: {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          address_line_1: formData.address,
-          city: formData.city,
-          postal_code: formData.postalCode,
-          country: formData.country
-        },
-        billing_address: {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          address_line_1: formData.address,
-          city: formData.city,
-          postal_code: formData.postalCode,
-          country: formData.country
-        },
+        shipping_address,
+        billing_address,
         payment_method: formData.paymentMethod,
         notes: formData.notes
       };
@@ -139,6 +185,9 @@ const Checkout = () => {
 
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Clear cart after successful order
+      await clearCart();
       
       toast({
         title: "Votre commande a été validée !",
@@ -192,89 +241,237 @@ const Checkout = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Adresse de Livraison
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">Prénom *</Label>
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Nom *</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Téléphone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                      />
-                    </div>
-                  </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Truck className="w-5 h-5 mr-2" />
+                      Type de Livraison
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <RadioGroup 
+                      value={formData.shippingType} 
+                      onValueChange={(value) => handleInputChange('shippingType', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="home" id="home" />
+                        <Label htmlFor="home">Livraison à domicile</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="pickup" id="pickup" />
+                        <Label htmlFor="pickup">Point Relais</Label>
+                      </div>
+                    </RadioGroup>
 
-                  <div>
-                    <Label htmlFor="address">Adresse *</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      required
-                    />
-                  </div>
+                    {formData.shippingType === 'pickup' && (
+                      <div className="space-y-4 p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">Point Relais sélectionné</p>
+                            {selectedPickupPoint ? (
+                              <div className="text-sm text-muted-foreground">
+                                <p className="font-medium">{selectedPickupPoint.name}</p>
+                                <p>{selectedPickupPoint.address}</p>
+                                <p>{selectedPickupPoint.postalCode} {selectedPickupPoint.city}</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">Aucun point sélectionné</p>
+                            )}
+                          </div>
+                          <Button variant="outline" onClick={() => setPickupPointModal(true)}>
+                            <Package className="w-4 h-4 mr-2" />
+                            {selectedPickupPoint ? 'Changer' : 'Choisir'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2">
-                      <Label htmlFor="city">Ville *</Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        required
+                {formData.shippingType === 'home' && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-2" />
+                        Adresse de Livraison
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName">Prénom *</Label>
+                          <Input
+                            id="firstName"
+                            value={formData.firstName}
+                            onChange={(e) => handleInputChange('firstName', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName">Nom *</Label>
+                          <Input
+                            id="lastName"
+                            value={formData.lastName}
+                            onChange={(e) => handleInputChange('lastName', e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="email">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone">Téléphone</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={formData.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="address">Adresse *</Label>
+                        <Input
+                          id="address"
+                          value={formData.address}
+                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-2">
+                          <Label htmlFor="city">Ville *</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="postalCode">Code Postal *</Label>
+                          <Input
+                            id="postalCode"
+                            value={formData.postalCode}
+                            onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Adresse de Facturation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="sameBilling" 
+                        checked={formData.sameBillingAddress}
+                        onCheckedChange={(checked) => handleInputChange('sameBillingAddress', checked as boolean)}
                       />
+                      <Label htmlFor="sameBilling">
+                        Identique à l'adresse de livraison
+                      </Label>
                     </div>
-                    <div>
-                      <Label htmlFor="postalCode">Code Postal *</Label>
-                      <Input
-                        id="postalCode"
-                        value={formData.postalCode}
-                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
+                    {!formData.sameBillingAddress && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="billingFirstName">Prénom *</Label>
+                            <Input
+                              id="billingFirstName"
+                              value={formData.billingFirstName}
+                              onChange={(e) => handleInputChange('billingFirstName', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="billingLastName">Nom *</Label>
+                            <Input
+                              id="billingLastName"
+                              value={formData.billingLastName}
+                              onChange={(e) => handleInputChange('billingLastName', e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="billingEmail">Email *</Label>
+                            <Input
+                              id="billingEmail"
+                              type="email"
+                              value={formData.billingEmail}
+                              onChange={(e) => handleInputChange('billingEmail', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="billingPhone">Téléphone</Label>
+                            <Input
+                              id="billingPhone"
+                              type="tel"
+                              value={formData.billingPhone}
+                              onChange={(e) => handleInputChange('billingPhone', e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="billingAddress">Adresse *</Label>
+                          <Input
+                            id="billingAddress"
+                            value={formData.billingAddress}
+                            onChange={(e) => handleInputChange('billingAddress', e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="md:col-span-2">
+                            <Label htmlFor="billingCity">Ville *</Label>
+                            <Input
+                              id="billingCity"
+                              value={formData.billingCity}
+                              onChange={(e) => handleInputChange('billingCity', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="billingPostalCode">Code Postal *</Label>
+                            <Input
+                              id="billingPostalCode"
+                              value={formData.billingPostalCode}
+                              onChange={(e) => handleInputChange('billingPostalCode', e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
               <Card>
                 <CardHeader>
@@ -443,6 +640,14 @@ const Checkout = () => {
             </div>
           </div>
         </form>
+        
+        {/* Pickup Point Modal */}
+        <PickupPointModal
+          open={pickupPointModal}
+          onOpenChange={setPickupPointModal}
+          onSelectPoint={setSelectedPickupPoint}
+          selectedPoint={selectedPickupPoint}
+        />
       </div>
     </div>
   );

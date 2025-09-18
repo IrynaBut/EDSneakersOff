@@ -31,7 +31,9 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
   useEffect(() => {
     if (!user) {
       const localFavorites = localStorage.getItem('favorites');
-      setFavorites(localFavorites ? JSON.parse(localFavorites) : []);
+      const parsed = localFavorites ? JSON.parse(localFavorites) : [];
+      // Only set if it's a valid array
+      setFavorites(Array.isArray(parsed) ? parsed : []);
       setLoading(false);
     }
   }, [user]);
@@ -45,9 +47,12 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
         // For now, we'll use localStorage even for authenticated users
         // In a full implementation, you'd create a favorites table in Supabase
         const localFavorites = localStorage.getItem(`favorites_${user.id}`);
-        setFavorites(localFavorites ? JSON.parse(localFavorites) : []);
+        const parsed = localFavorites ? JSON.parse(localFavorites) : [];
+        // Only set if it's a valid array
+        setFavorites(Array.isArray(parsed) ? parsed : []);
       } catch (error) {
         console.error('Error loading favorites:', error);
+        setFavorites([]); // Reset to empty array on error
       } finally {
         setLoading(false);
       }
@@ -65,6 +70,15 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
 
   const addToFavorites = async (productId: string) => {
     try {
+      // Check if already in favorites
+      if (favorites.includes(productId)) {
+        toast({
+          title: "Produit déjà dans les favoris",
+          description: "Ce produit est déjà dans votre liste de favoris",
+        });
+        return;
+      }
+      
       const newFavorites = [...favorites, productId];
       setFavorites(newFavorites);
       saveFavorites(newFavorites);

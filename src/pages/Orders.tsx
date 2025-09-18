@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Package, Calendar, CreditCard, Truck, MapPin, RotateCcw, Star } from "lucide-react";
+import { TrackingModal } from "@/components/TrackingModal";
+import { ArrowLeft, Package, Calendar, CreditCard, Truck, MapPin, RotateCcw, Star, ExternalLink } from "lucide-react";
 
 interface Order {
   id: string;
@@ -29,6 +30,7 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [loyaltyPoints, setLoyaltyPoints] = useState<any>(null);
+  const [trackingModal, setTrackingModal] = useState<{ open: boolean; orderNumber: string; trackingNumber: string } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -76,10 +78,9 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      confirmed: { label: 'Commande reçue', variant: 'secondary' as const },
-      processing: { label: 'Traitée', variant: 'default' as const },
-      shipped: { label: 'Colis expédié', variant: 'outline' as const },
-      delivered: { label: 'Colis livré', variant: 'default' as const },
+      'Payée et en préparation': { label: 'Payée et en préparation', variant: 'secondary' as const },
+      'Expédiée': { label: 'Expédiée', variant: 'default' as const },
+      'Livrée': { label: 'Livrée', variant: 'outline' as const },
       cancelled: { label: 'Annulée', variant: 'destructive' as const }
     };
     
@@ -111,6 +112,18 @@ const Orders = () => {
     return Math.floor(amount); // 1 point per euro
   };
 
+  const canReturn = (order: any) => {
+    if (order.status !== 'Livrée') return false;
+    
+    const deliveryDate = new Date(order.created_at);
+    deliveryDate.setDate(deliveryDate.getDate() + 7); // Simulate delivery 7 days after order
+    
+    const thirtyDaysAfterDelivery = new Date(deliveryDate);
+    thirtyDaysAfterDelivery.setDate(thirtyDaysAfterDelivery.getDate() + 30);
+    
+    return new Date() <= thirtyDaysAfterDelivery;
+  };
+
   const handleReturnRequest = (orderId: string, orderNumber: string) => {
     toast({
       title: "Demande de retour initiée",
@@ -119,9 +132,11 @@ const Orders = () => {
   };
 
   const handleTrackPackage = (orderNumber: string) => {
-    toast({
-      title: "Suivi de colis",
-      description: `Colis ${orderNumber}: En transit vers votre point relais. Livraison prévue demain avant 18h. Numéro de suivi: FR${orderNumber.replace('EDN-', '')}XYZ`,
+    const trackingNumber = `FR${orderNumber.replace('EDN-', '')}XYZ`;
+    setTrackingModal({ 
+      open: true, 
+      orderNumber, 
+      trackingNumber 
     });
   };
 
@@ -336,14 +351,14 @@ const Orders = () => {
                     {/* Action Buttons */}
                     <Separator className="my-6" />
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                      {order.status === 'delivered' ? (
+                      {order.status === 'Livrée' ? (
                         <div className="flex-1">
                           <h4 className="font-semibold">Besoin de retourner un article ?</h4>
                           <p className="text-sm text-muted-foreground">
                             Vous avez 30 jours pour retourner vos articles
                           </p>
                         </div>
-                      ) : order.status === 'shipped' ? (
+                      ) : order.status === 'Expédiée' ? (
                         <div className="flex-1">
                           <h4 className="font-semibold">Votre colis est en route !</h4>
                           <p className="text-sm text-muted-foreground">
@@ -355,23 +370,24 @@ const Orders = () => {
                       )}
                       
                       <div className="flex gap-2">
-                        {order.status === 'delivered' && (
+                        {order.status === 'Livrée' && (
                           <Button 
                             variant="outline" 
                             onClick={() => handleReturnRequest(order.id, order.order_number)}
                             className="flex items-center gap-2"
+                            disabled={!canReturn(order)}
                           >
                             <RotateCcw className="w-4 h-4" />
-                            Retourner un article
+                            {canReturn(order) ? 'Retourner un article' : 'Délai de retour dépassé'}
                           </Button>
                         )}
-                        {order.status === 'shipped' && (
+                        {order.status === 'Expédiée' && (
                           <Button 
                             variant="default" 
                             onClick={() => handleTrackPackage(order.order_number)}
                             className="flex items-center gap-2"
                           >
-                            <Truck className="w-4 h-4" />
+                            <ExternalLink className="w-4 h-4" />
                             Suivre le colis
                           </Button>
                         )}
@@ -384,6 +400,16 @@ const Orders = () => {
           </div>
         )}
       </div>
+      
+      {/* Tracking Modal */}
+      {trackingModal && (
+        <TrackingModal
+          open={trackingModal.open}
+          onOpenChange={() => setTrackingModal(null)}
+          orderNumber={trackingModal.orderNumber}
+          trackingNumber={trackingModal.trackingNumber}
+        />
+      )}
     </div>
   );
 };
