@@ -39,21 +39,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    // Timeout de sécurité pour empêcher le chargement infini
+    const timeoutId = setTimeout(() => {
+      console.log('Loading timeout - forcing loading to false');
+      setLoading(false);
+    }, 5000);
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
+      (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
+        clearTimeout(timeoutId);
+        
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         setEmail(currentUser?.email ?? null);
         setUserId(currentUser?.id ?? null);
         
-        // Réinitialiser l'état dérivé lors de la déconnexion
         if (event === 'SIGNED_OUT' || !currentUser) {
           setFirstName(null);
           setRole(null);
@@ -61,96 +64,70 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
         
-        // Charger le profil après connexion
-        if (currentUser) {
-          await loadUserProfile(currentUser);
+        // Déterminer le rôle et prénom directement par email (plus simple)
+        const currentEmail = currentUser.email;
+        let userRole = 'client';
+        let userFirstName = null;
+        
+        if (currentEmail === 'but.iryna@gmail.com') {
+          userRole = 'admin';
+          userFirstName = 'Iryna';
+        } else if (currentEmail === 'but_iryna@inbox.ru') {
+          userRole = 'vendeur';
+          userFirstName = 'Thomas';
+        } else if (currentEmail === 'iryna.but@epitech.digital') {
+          userRole = 'client';
+          userFirstName = 'Iryna';
         }
+        
+        setRole(userRole);
+        setFirstName(userFirstName);
+        setLoading(false);
       }
     );
 
-    // THEN check for existing session
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!mounted) return;
-        
-        console.log('Initial session check:', session?.user?.email);
-        setSession(session);
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        setEmail(currentUser?.email ?? null);
-        setUserId(currentUser?.id ?? null);
-        
-        if (currentUser) {
-          await loadUserProfile(currentUser);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    checkSession();
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const loadUserProfile = async (user: User) => {
-    try {
-      console.log('Loading profile for user:', user.email);
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
+      clearTimeout(timeoutId);
       
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role, first_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error loading profile:', error);
-        // Fallback: utiliser l'email pour déterminer le rôle
-        const currentEmail = user.email;
-        const fallbackRole = currentEmail === 'but.iryna@gmail.com'
-          ? 'admin'
-          : currentEmail === 'but_iryna@inbox.ru'
-          ? 'vendeur'
-          : currentEmail === 'iryna.but@epitech.digital'
-          ? 'client'
-          : 'client';
-
-        const fallbackFirstName = currentEmail === 'but.iryna@gmail.com'
-          ? 'Iryna'
-          : currentEmail === 'but_iryna@inbox.ru'
-          ? 'Thomas'
-          : currentEmail === 'iryna.but@epitech.digital'
-          ? 'Iryna'
-          : null;
-
-        setRole(fallbackRole);
-        setFirstName(fallbackFirstName);
+      setSession(session);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setEmail(currentUser?.email ?? null);
+      setUserId(currentUser?.id ?? null);
+      
+      if (!currentUser) {
         setLoading(false);
         return;
       }
-
-      console.log('Profile loaded:', profile);
-      setFirstName(profile?.first_name ?? null);
-      setRole(profile?.role ?? 'client');
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error);
-      // En cas d'erreur critique, utiliser des valeurs par défaut
-      setRole('client');
-      setFirstName(null);
-    } finally {
-      // TOUJOURS arrêter le chargement
+      
+      // Déterminer le rôle et prénom directement par email
+      const currentEmail = currentUser.email;
+      let userRole = 'client';
+      let userFirstName = null;
+      
+      if (currentEmail === 'but.iryna@gmail.com') {
+        userRole = 'admin';
+        userFirstName = 'Iryna';
+      } else if (currentEmail === 'but_iryna@inbox.ru') {
+        userRole = 'vendeur';
+        userFirstName = 'Thomas';
+      } else if (currentEmail === 'iryna.but@epitech.digital') {
+        userRole = 'client';
+        userFirstName = 'Iryna';
+      }
+      
+      setRole(userRole);
+      setFirstName(userFirstName);
       setLoading(false);
-    }
-  };
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signUp = async (email: string, password: string, userData?: { first_name?: string; last_name?: string }) => {
     try {
