@@ -183,20 +183,20 @@ const Home = () => {
                 Nos Baskets
               </h1>
               
-              <p className="text-2xl md:text-3xl text-white max-w-3xl mx-auto leading-relaxed font-medium">
+              <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto leading-relaxed">
                 Découvrez notre collection exclusive de baskets premium pour toute la famille. 
                 Qualité, style et confort garantis.
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button size="lg" className="text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold" asChild>
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong" asChild>
                 <Link to="/nouveautes">
                   Voir les Nouveautés
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" className="text-lg px-8 py-6 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold" asChild>
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong" asChild>
                 <Link to="/promotions">
                   Voir les Promotions
                   <ArrowRight className="ml-2 h-5 w-5" />
