@@ -300,37 +300,51 @@ export const Factures = () => {
                         {invoice.payment_method && ` • ${invoice.payment_method}`}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <select
-                        value={invoice.status}
-                        onChange={(e) => updateInvoiceStatus(invoice.id, e.target.value)}
-                        className="px-3 py-1 border rounded text-sm"
-                      >
-                        <option value="pending">En attente</option>
-                        <option value="paid">Payée</option>
-                        <option value="overdue">En retard</option>
-                        <option value="cancelled">Annulée</option>
-                      </select>
-                      <Badge variant={getStatusColor(invoice.status)}>
-                        {getStatusLabel(invoice.status)}
-                      </Badge>
-                      <div className="flex items-center space-x-2">
-                        <InvoicePreviewModal invoice={invoice}>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
-                          </Button>
-                        </InvoicePreviewModal>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => toast.success('Génération du PDF en cours...', { description: `Facture ${invoice.invoice_number}` })}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          PDF
-                        </Button>
-                      </div>
-                    </div>
+                     <div className="flex items-center space-x-2">
+                       <select
+                         value={invoice.status}
+                         onChange={(e) => updateInvoiceStatus(invoice.id, e.target.value)}
+                         className="px-3 py-1 border rounded text-sm"
+                       >
+                         <option value="pending">En attente</option>
+                         <option value="paid">Payée</option>
+                         <option value="overdue">En retard</option>
+                         <option value="cancelled">Annulée</option>
+                       </select>
+                       <Badge variant={getStatusColor(invoice.status)}>
+                         {getStatusLabel(invoice.status)}
+                       </Badge>
+                       <div className="flex items-center space-x-2">
+                         {invoice.status === 'overdue' && (
+                           <Button 
+                             size="sm" 
+                             variant="destructive"
+                             onClick={() => {
+                               toast.success('Une relance a été envoyée au fournisseur.', {
+                                 description: `Relance pour la facture ${invoice.invoice_number}`
+                               });
+                             }}
+                           >
+                             <Receipt className="h-4 w-4 mr-1" />
+                             Relancer le fournisseur
+                           </Button>
+                         )}
+                         <InvoicePreviewModal invoice={invoice}>
+                           <Button size="sm" variant="outline">
+                             <Eye className="h-4 w-4 mr-1" />
+                             Voir
+                           </Button>
+                         </InvoicePreviewModal>
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           onClick={() => toast.success('Génération du PDF en cours...', { description: `Facture ${invoice.invoice_number}` })}
+                         >
+                           <Download className="h-4 w-4 mr-1" />
+                           PDF
+                         </Button>
+                       </div>
+                     </div>
                   </div>
                 ))}
                 {filteredInvoices.length === 0 && (

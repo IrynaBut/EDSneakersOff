@@ -78,12 +78,14 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'pending': { label: 'En préparation', variant: 'secondary' as const },
-      'processing': { label: 'En préparation', variant: 'secondary' as const },
+      'pending': { label: 'Payée et en préparation', variant: 'secondary' as const },
+      'processing': { label: 'Payée et en préparation', variant: 'secondary' as const },
+      'confirmed': { label: 'Payée et en préparation', variant: 'secondary' as const },
       'shipped': { label: 'Expédiée', variant: 'default' as const },
       'Expédiée': { label: 'Expédiée', variant: 'default' as const },
       'delivered': { label: 'Livrée', variant: 'outline' as const },
       'Livrée': { label: 'Livrée', variant: 'outline' as const },
+      'completed': { label: 'Livrée', variant: 'outline' as const },
       'cancelled': { label: 'Annulée', variant: 'destructive' as const }
     };
     
@@ -92,13 +94,13 @@ const Orders = () => {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
-      'pending': { label: 'En attente', variant: 'secondary' as const },
+      'pending': { label: 'Paiement en attente', variant: 'secondary' as const },
       'paid': { label: 'Payée', variant: 'default' as const },
       'failed': { label: 'Paiement échoué', variant: 'destructive' as const },
       'refunded': { label: 'Remboursée', variant: 'outline' as const }
     };
     
-    return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
+    return statusConfig[status as keyof typeof statusConfig] || { label: 'Payée', variant: 'default' as const };
   };
 
   const getPaymentMethodLabel = (method: string) => {
@@ -166,8 +168,25 @@ const Orders = () => {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Mes Commandes</h1>
-          <p className="text-muted-foreground">Suivez l'état de vos commandes et consultez votre historique d'achats</p>
+          <h1 className="text-3xl font-bold mb-2">Suivi des Commandes</h1>
+          <p className="text-muted-foreground">Consultez le détail complet de vos commandes avec toutes les informations de livraison, facturation et suivi</p>
+          {loyaltyPoints && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Star className="w-5 h-5 text-primary" />
+                    Vos Points de Fidélité
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Points disponibles pour vos prochains achats</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-primary">{loyaltyPoints.points}</div>
+                  <div className="text-sm text-muted-foreground">Total gagné: {loyaltyPoints.total_earned}</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {orders.length === 0 ? (
