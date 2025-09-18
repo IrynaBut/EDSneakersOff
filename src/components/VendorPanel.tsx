@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { RestockModal } from './RestockModal';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
+import { OrderActions } from './OrderActions';
 
 interface ProductVariant {
   id: string;
@@ -41,6 +42,9 @@ interface Order {
   status: string;
   total_amount: number;
   created_at: string;
+  metadata?: {
+    tracking_number?: string;
+  };
   profiles?: {
     first_name?: string;
     last_name?: string;
@@ -445,15 +449,15 @@ export const VendorPanel = () => {
                         <option value="delivered">Livrée</option>
                         <option value="cancelled">Annulée</option>
                       </select>
-                      <Badge variant={
-                        order.status === 'completed' ? 'default' : 
-                        order.status === 'cancelled' ? 'destructive' : 'secondary'
-                      }>
-                        {order.status}
-                      </Badge>
+                      <OrderActions order={order} />
                     </div>
                   </div>
                 ))}
+                {filteredOrders.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucune commande trouvée
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

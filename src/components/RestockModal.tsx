@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Package, Truck, Calendar, Euro } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RestockModalProps {
   variant: {
@@ -60,23 +61,51 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
   const selectedPaymentMethod = paymentMethods.find(p => p.id === paymentMethod);
 
   const handleRestock = async () => {
-    onRestock(variant.id, quantity);
-    
-    // Simulate creating invoice
-    const invoiceNumber = `FAC-${Date.now()}`;
-    
-    toast.success(`Commande confirmée avec succès !`, {
-      description: `Facture ${invoiceNumber} générée et email de confirmation envoyé`,
-    });
-    
-    // Simulate sending email
-    setTimeout(() => {
-      toast.info('Email de confirmation envoyé', {
-        description: `La facture a été envoyée à ${currentSupplier?.name || 'le fournisseur'}`,
+    try {
+      // Update the stock first
+      onRestock(variant.id, quantity);
+      
+      // Create invoice in database
+      const invoiceNumber = `FACT-RST-${Date.now()}`;
+      const currentSupplierInfo = supplier === 'autre' ? customSupplier : selectedSupplier;
+      
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          invoice_number: invoiceNumber,
+          type: 'supplier',
+          variant_id: variant.id,
+          supplier_name: currentSupplierInfo?.name || 'Fournisseur non spécifié',
+          supplier_contact: supplier === 'autre' ? customSupplier.contact : 'contact@fournisseur.fr',
+          total_amount: totalCost,
+          unit_price: (variant.products?.price || 0) * (currentSupplierInfo?.price || 0.85),
+          quantity: quantity,
+          status: 'paid',
+          payment_method: paymentMethod,
+          currency: 'EUR',
+          due_date: new Date().toISOString(),
+          paid_date: new Date().toISOString(),
+          metadata: {
+            restock_batch: `RST-${Date.now()}`,
+            delivery_date: deliveryDate,
+            product_name: variant.products?.name
+          }
+        });
+
+      if (invoiceError) {
+        console.error('Error creating invoice:', invoiceError);
+      }
+
+      toast.success('Votre paiement a bien été effectué. Un mail de confirmation avec la facture a été envoyé.', {
+        description: `Facture ${invoiceNumber} générée et sauvegardée`,
+        duration: 5000,
       });
-    }, 1000);
-    
-    setOpen(false);
+      
+      setOpen(false);
+    } catch (error) {
+      console.error('Error during restock:', error);
+      toast.error('Erreur lors du réapprovisionnement');
+    }
   };
 
   // Calculate suggested delivery date
@@ -135,42 +164,42 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           </Card>
 
           {/* Restock Form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantité à commander</Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                max="1000"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantité à commander</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="supplier">Fournisseur</Label>
-              <Select value={supplier} onValueChange={setSupplier}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.map((sup) => (
-                    <SelectItem key={sup.id} value={sup.id}>
-                      <div className="flex flex-col">
-                        <span>{sup.name}</span>
-                        {sup.id !== 'autre' && (
-                          <span className="text-xs text-muted-foreground">
-                            Délai: {sup.delay} • Coût: {(sup.price * 100).toFixed(0)}% du prix
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="supplier">Fournisseur</Label>
+                <Select value={supplier} onValueChange={setSupplier}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map((sup) => (
+                      <SelectItem key={sup.id} value={sup.id}>
+                        <div className="flex flex-col">
+                          <span>{sup.name}</span>
+                          {sup.id !== 'autre' && (
+                            <span className="text-xs text-muted-foreground">
+                              Délai: {sup.delay} • Coût: {(sup.price * 100).toFixed(0)}% du prix
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
           {/* Custom Supplier Form */}
           {supplier === 'autre' && (
