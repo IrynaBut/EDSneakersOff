@@ -30,7 +30,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate('/auth');
       return;
     }
 
@@ -43,6 +43,13 @@ const UserProfile = () => {
           .single();
 
         if (error) throw error;
+        
+        // Redirect admin/vendor users to management dashboard
+        if (data.role === 'admin' || data.role === 'vendeur') {
+          navigate('/gestion');
+          return;
+        }
+        
         setProfile(data);
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -84,6 +91,9 @@ const UserProfile = () => {
   };
 
   const getGreetingName = () => {
+    if (user?.email === 'but.iryna@gmail.com') {
+      return 'Iryna';
+    }
     if (profile?.first_name) {
       return profile.first_name;
     }
@@ -117,7 +127,7 @@ const UserProfile = () => {
           <h1 className="text-3xl font-bold mb-2">
             {getGreetingName() ? `Bonjour, ${getGreetingName()}` : 'Mon Profil'}
           </h1>
-          <p className="text-muted-foreground">Gérez vos informations personnelles et vos préférences</p>
+          <p className="text-muted-foreground">Gérez vos informations personnelles, vos commandes et vos préférences</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -131,15 +141,9 @@ const UserProfile = () => {
                     Informations personnelles
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant={profile?.role === 'admin' ? 'default' : profile?.role === 'vendeur' ? 'secondary' : 'outline'}>
-                      {profile?.role === 'admin' ? 'Administrateur' : 
-                       profile?.role === 'vendeur' ? 'Vendeur' : 'Client'}
+                    <Badge variant="outline">
+                      Client
                     </Badge>
-                    {profile?.role === 'admin' && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href="/gestion">Accéder au panneau d'administration</a>
-                      </Button>
-                    )}
                   </div>
                 </div>
               </CardHeader>

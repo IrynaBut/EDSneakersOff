@@ -59,6 +59,9 @@ const Management = () => {
   }, [user, navigate]);
 
   const getGreetingName = () => {
+    if (user?.email === 'but.iryna@gmail.com') {
+      return 'Iryna';
+    }
     if (profile?.first_name) {
       return profile.first_name;
     }

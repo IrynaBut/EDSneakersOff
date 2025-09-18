@@ -98,13 +98,6 @@ const Header = () => {
 
           {/* Actions Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Greeting */}
-            {user && userProfile && (
-              <span className="text-sm text-foreground font-medium">
-                Bonjour, {userProfile.first_name || userProfile.email?.split('@')[0] || 'Utilisateur'}
-              </span>
-            )}
-            
             <Button variant="ghost" size="sm" onClick={() => setSearchOpen(true)} className="relative">
               <Search className="h-4 w-4" />
             </Button>
@@ -121,11 +114,17 @@ const Header = () => {
             <Cart />
             {user ? (
               <div className="flex items-center space-x-2">
-                {(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? (
+                {user && userProfile ? (
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/gestion">
-                      <Settings className="h-4 w-4" />
-                      <span className="ml-2 text-sm">Gestion</span>
+                    <Link to={(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? "/gestion" : "/profile"}>
+                      <User className="h-4 w-4" />
+                      <span className="ml-2 text-sm">
+                        Bonjour, {
+                          userProfile.email === 'but.iryna@gmail.com' 
+                            ? 'Iryna'
+                            : userProfile.first_name || userProfile.email?.split('@')[0] || 'Utilisateur'
+                        }
+                      </span>
                     </Link>
                   </Button>
                 ) : (
@@ -191,11 +190,11 @@ const Header = () => {
                 </Button>
                 <Cart />
                 {user ? (
-                  <div className="flex items-center justify-center">
-                    {(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    {user && userProfile ? (
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to="/gestion">
-                          <Settings className="h-4 w-4" />
+                        <Link to={(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? "/gestion" : "/profile"}>
+                          <User className="h-4 w-4" />
                         </Link>
                       </Button>
                     ) : (
