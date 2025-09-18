@@ -37,6 +37,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Handle role-based routing after login
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            handleRoleBasedRouting(session.user);
+          }, 100);
+        }
       }
     );
 
@@ -49,6 +56,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleRoleBasedRouting = async (user: User) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        if (profile.role === 'admin' || profile.role === 'vendeur') {
+          window.location.href = '/gestion';
+        } else if (profile.role === 'client') {
+          window.location.href = '/profile';
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la redirection basée sur le rôle:', error);
+    }
+  };
 
   const signUp = async (email: string, password: string, userData?: { first_name?: string; last_name?: string }) => {
     try {

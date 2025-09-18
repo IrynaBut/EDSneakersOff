@@ -90,6 +90,38 @@ const UserProfile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible.")) {
+      return;
+    }
+
+    try {
+      // Delete profile first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (profileError) throw profileError;
+
+      // Sign out user
+      await signOut();
+      
+      toast({
+        title: "Compte supprimé",
+        description: "Votre compte a été supprimé avec succès.",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer votre compte.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getGreetingName = () => {
     if (user?.email === 'but.iryna@gmail.com') {
       return 'Iryna';
@@ -194,6 +226,27 @@ const UserProfile = () => {
                     />
                   </div>
 
+                  <div>
+                    <Label htmlFor="birthDate">Date de naissance</Label>
+                    <Input 
+                      id="birthDate" 
+                      name="birthDate"
+                      type="date"
+                      defaultValue={profile?.birth_date || ''} 
+                      disabled={!editing}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="address">Adresse postale</Label>
+                    <Input 
+                      id="address" 
+                      name="address"
+                      defaultValue={profile?.address || ''} 
+                      disabled={!editing}
+                    />
+                  </div>
+
                   <div className="flex gap-2">
                     {editing ? (
                       <>
@@ -236,27 +289,15 @@ const UserProfile = () => {
                   </a>
                 </Button>
                 <Separator />
-                <Button variant="destructive" className="w-full" onClick={signOut}>
+                <Button variant="destructive" className="w-full" onClick={handleDeleteAccount}>
+                  Supprimer mon compte
+                </Button>
+                <Button variant="outline" className="w-full" onClick={signOut}>
                   Déconnexion
                 </Button>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Informations du compte</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Membre depuis {new Date(profile?.created_at).toLocaleDateString('fr-FR')}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Mail className="w-4 h-4 mr-2" />
-                  {profile?.email}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
