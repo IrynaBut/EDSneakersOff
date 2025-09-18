@@ -53,6 +53,9 @@ const App = () => (
                     <Route path="/commandes" element={<Orders />} />
                     <Route path="/gestion" element={<Management />} />
                     <Route path="/profile" element={<UserProfile />} />
+                    <Route path="/mon-compte" element={<UserProfile />} />
+                    <Route path="/admin" element={<Management />} />
+                    <Route path="/vendeur" element={<Management />} />
                     <Route path="/faq" element={<FAQ />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

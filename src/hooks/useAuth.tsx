@@ -10,6 +10,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   loading: boolean;
+  firstName: string | null;
+  role: string | null;
+  email: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,19 +33,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        setEmail(session?.user?.email ?? null);
         setLoading(false);
         
-        // Handle role-based routing after login
-        if (event === 'SIGNED_IN' && session?.user) {
+        // Réinitialiser l'état dérivé lors de la déconnexion
+        if (event === 'SIGNED_OUT' || !currentUser) {
+          setFirstName(null);
+          setRole(null);
+        }
+        
+        // Redirection basée sur le rôle après connexion
+        if (event === 'SIGNED_IN' && currentUser) {
           setTimeout(() => {
-            handleRoleBasedRouting(session.user);
+            handleRoleBasedRouting(currentUser);
           }, 500);
         }
       }
@@ -51,8 +65,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setEmail(session?.user?.email ?? null);
       setLoading(false);
+      if (currentUser) {
+        setTimeout(() => {
+          handleRoleBasedRouting(currentUser);
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -62,16 +83,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, first_name, email')
         .eq('user_id', user.id)
         .single();
 
-      if (profile) {
-        if (profile.role === 'admin' || profile.role === 'vendeur') {
-          window.location.href = '/gestion';
-        } else if (profile.role === 'client') {
-          window.location.href = '/profile';
-        }
+      const currentEmail = user.email ?? profile?.email ?? null;
+      const fallbackRole = currentEmail === 'but.iryna@gmail.com'
+        ? 'admin'
+        : currentEmail === 'but_iryna@inbox.ru'
+        ? 'vendeur'
+        : currentEmail === 'iryna.but@epitech.digital'
+        ? 'client'
+        : null;
+
+      const resolvedRole = profile?.role ?? fallbackRole;
+      const resolvedFirstName = currentEmail === 'but.iryna@gmail.com'
+        ? 'Iryna'
+        : (profile?.first_name ?? (currentEmail ? currentEmail.split('@')[0] : null));
+
+      setFirstName(resolvedFirstName ?? null);
+      setRole(resolvedRole ?? null);
+
+      if (resolvedRole === 'admin') {
+        window.location.href = '/admin';
+      } else if (resolvedRole === 'vendeur') {
+        window.location.href = '/vendeur';
+      } else if (resolvedRole === 'client') {
+        window.location.href = '/mon-compte';
       }
     } catch (error) {
       console.error('Erreur lors de la redirection basée sur le rôle:', error);
@@ -126,6 +164,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signIn,
     signOut,
     loading,
+    firstName,
+    role,
+    email,
   };
 
   return (

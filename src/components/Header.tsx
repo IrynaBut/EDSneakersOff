@@ -24,7 +24,7 @@ const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, firstName, role, email } = useAuth();
   const { favorites } = useFavorites();
   
   const navigation = [
@@ -114,24 +114,20 @@ const Header = () => {
             <Cart />
             {user ? (
               <div className="flex items-center space-x-2">
-                {user && userProfile ? (
+                {user ? (
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to={(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? "/gestion" : "/profile"}>
+                    <Link to={role === 'admin' ? '/admin' : role === 'vendeur' ? '/vendeur' : '/mon-compte'}>
                       <User className="h-4 w-4" />
                       <span className="ml-2 text-sm">
-                        Bonjour, {
-                          userProfile.email === 'but.iryna@gmail.com' 
-                            ? 'Iryna'
-                            : userProfile.first_name || userProfile.email?.split('@')[0] || 'Utilisateur'
-                        }
+                        Bonjour, {email === 'but.iryna@gmail.com' ? 'Iryna' : (firstName || userProfile?.first_name || user?.email?.split('@')[0] || 'Utilisateur')}
                       </span>
                     </Link>
                   </Button>
                 ) : (
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/profile">
+                    <Link to="/auth">
                       <User className="h-4 w-4" />
-                      <span className="ml-2 text-sm">Profil</span>
+                      <span className="ml-2 text-sm">Connexion</span>
                     </Link>
                   </Button>
                 )}
@@ -191,19 +187,11 @@ const Header = () => {
                 <Cart />
                 {user ? (
                   <div className="flex items-center justify-center space-x-2">
-                    {user && userProfile ? (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to={(userProfile?.role === 'admin' || userProfile?.role === 'vendeur') ? "/gestion" : "/profile"}>
-                          <User className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to="/profile">
-                          <User className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    )}
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to={role === 'admin' ? '/admin' : role === 'vendeur' ? '/vendeur' : '/mon-compte'}>
+                        <User className="h-4 w-4" />
+                      </Link>
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={handleSignOut}>
                       <LogOut className="h-4 w-4" />
                     </Button>
