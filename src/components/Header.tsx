@@ -22,9 +22,8 @@ import logo from "@/assets/logo.png";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const location = useLocation();
-  const { user, signOut, firstName, role, email } = useAuth();
+  const { user, signOut, firstName, role } = useAuth();
   const { favorites } = useFavorites();
   
   const navigation = [
@@ -38,29 +37,6 @@ const Header = () => {
 
   const isActive = (href: string) => location.pathname === href;
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!user) {
-        setUserProfile(null);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) throw error;
-        setUserProfile(data);
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-      }
-    };
-
-    loadUserProfile();
-  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -114,23 +90,14 @@ const Header = () => {
             <Cart />
             {user ? (
               <div className="flex items-center space-x-2">
-                {user ? (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={role === 'admin' ? '/admin' : role === 'vendeur' ? '/vendeur' : '/mon-compte'}>
-                      <User className="h-4 w-4" />
-                      <span className="ml-2 text-sm">
-                        Bonjour, {email === 'but.iryna@gmail.com' ? 'Iryna' : (firstName || userProfile?.first_name || user?.email?.split('@')[0] || 'Utilisateur')}
-                      </span>
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/auth">
-                      <User className="h-4 w-4" />
-                      <span className="ml-2 text-sm">Connexion</span>
-                    </Link>
-                  </Button>
-                )}
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to={role === 'admin' ? '/admin' : role === 'vendeur' ? '/vendeur' : '/mon-compte'}>
+                    <User className="h-4 w-4" />
+                    <span className="ml-2 text-sm">
+                      {firstName ? `Bonjour, ${firstName}` : 'Bonjour'}
+                    </span>
+                  </Link>
+                </Button>
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4" />
                   <span className="ml-2 text-sm">Déconnexion</span>

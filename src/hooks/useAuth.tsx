@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +12,7 @@ interface AuthContextType {
   firstName: string | null;
   role: string | null;
   email: string | null;
+  userId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,83 +36,88 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [firstName, setFirstName] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-        setEmail(session?.user?.email ?? null);
-        setLoading(false);
+        setEmail(currentUser?.email ?? null);
+        setUserId(currentUser?.id ?? null);
         
         // Réinitialiser l'état dérivé lors de la déconnexion
         if (event === 'SIGNED_OUT' || !currentUser) {
           setFirstName(null);
           setRole(null);
+          setLoading(false);
+          return;
         }
         
-        // Redirection basée sur le rôle après connexion
-        if (event === 'SIGNED_IN' && currentUser) {
-          setTimeout(() => {
-            handleRoleBasedRouting(currentUser);
-          }, 500);
+        // Charger le profil après connexion ou refresh
+        if (currentUser) {
+          await loadUserProfile(currentUser);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setEmail(session?.user?.email ?? null);
-      setLoading(false);
+      setEmail(currentUser?.email ?? null);
+      setUserId(currentUser?.id ?? null);
+      
       if (currentUser) {
-        setTimeout(() => {
-          handleRoleBasedRouting(currentUser);
-        }, 0);
+        await loadUserProfile(currentUser);
+      } else {
+        setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleRoleBasedRouting = async (user: User) => {
+  const loadUserProfile = async (user: User) => {
     try {
-      const { data: profile } = await supabase
+      console.log('Loading profile for user:', user.email);
+      
+      const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role, first_name, email')
+        .select('role, first_name')
         .eq('user_id', user.id)
         .single();
 
-      const currentEmail = user.email ?? profile?.email ?? null;
-      const fallbackRole = currentEmail === 'but.iryna@gmail.com'
-        ? 'admin'
-        : currentEmail === 'but_iryna@inbox.ru'
-        ? 'vendeur'
-        : currentEmail === 'iryna.but@epitech.digital'
-        ? 'client'
-        : null;
+      if (error) {
+        console.error('Error loading profile:', error);
+        // Fallback: utiliser l'email pour déterminer le rôle
+        const currentEmail = user.email;
+        const fallbackRole = currentEmail === 'but.iryna@gmail.com'
+          ? 'admin'
+          : currentEmail === 'but_iryna@inbox.ru'
+          ? 'vendeur'
+          : currentEmail === 'iryna.but@epitech.digital'
+          ? 'client'
+          : 'client';
 
-      const resolvedRole = profile?.role ?? fallbackRole;
-      const resolvedFirstName = currentEmail === 'but.iryna@gmail.com'
-        ? 'Iryna'
-        : (profile?.first_name ?? (currentEmail ? currentEmail.split('@')[0] : null));
-
-      setFirstName(resolvedFirstName ?? null);
-      setRole(resolvedRole ?? null);
-
-      if (resolvedRole === 'admin') {
-        window.location.href = '/admin';
-      } else if (resolvedRole === 'vendeur') {
-        window.location.href = '/vendeur';
-      } else if (resolvedRole === 'client') {
-        window.location.href = '/mon-compte';
+        setRole(fallbackRole);
+        setFirstName(null); // Pas de prénom disponible
+        setLoading(false);
+        return;
       }
+
+      console.log('Profile loaded:', profile);
+      setFirstName(profile?.first_name ?? null);
+      setRole(profile?.role ?? 'client');
+      setLoading(false);
     } catch (error) {
-      console.error('Erreur lors de la redirection basée sur le rôle:', error);
+      console.error('Erreur lors du chargement du profil:', error);
+      setLoading(false);
     }
   };
 
@@ -167,6 +172,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     firstName,
     role,
     email,
+    userId,
   };
 
   return (
