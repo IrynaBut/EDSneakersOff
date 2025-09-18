@@ -175,31 +175,34 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white mb-6">
-              Votre Style,
-              <br />
-              Nos Baskets
-            </h1>
+            {/* Text overlay for better contrast */}
+            <div className="bg-black/40 rounded-lg p-8 backdrop-blur-sm">
+              <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white mb-6">
+                Votre Style,
+                <br />
+                Nos Baskets
+              </h1>
+              
+              <p className="text-2xl md:text-3xl text-white max-w-3xl mx-auto leading-relaxed font-medium">
+                Découvrez notre collection exclusive de baskets premium pour toute la famille. 
+                Qualité, style et confort garantis.
+              </p>
+            </div>
             
-            <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto">
-              Découvrez notre collection exclusive de baskets premium pour toute la famille. 
-              Qualité, style et confort garantis.
-            </p>
-            
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong" asChild>
-                  <Link to="/nouveautes">
-                    Voir les Nouveautés
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="text-lg px-8 py-6 shadow-strong bg-white/10 border-white text-white hover:bg-white hover:text-black" asChild>
-                  <Link to="/promotions">
-                    Voir les Promotions
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button size="lg" className="text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold" asChild>
+                <Link to="/nouveautes">
+                  Voir les Nouveautés
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button size="lg" className="text-lg px-8 py-6 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold" asChild>
+                <Link to="/promotions">
+                  Voir les Promotions
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
         
