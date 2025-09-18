@@ -39,9 +39,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         const currentUser = session?.user ?? null;
@@ -57,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
         
-        // Charger le profil après connexion ou refresh
+        // Charger le profil après connexion
         if (currentUser) {
           await loadUserProfile(currentUser);
         }
@@ -65,22 +69,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      setEmail(currentUser?.email ?? null);
-      setUserId(currentUser?.id ?? null);
-      
-      if (currentUser) {
-        await loadUserProfile(currentUser);
-      } else {
-        setLoading(false);
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        console.log('Initial session check:', session?.user?.email);
+        setSession(session);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        setEmail(currentUser?.email ?? null);
+        setUserId(currentUser?.id ?? null);
+        
+        if (currentUser) {
+          await loadUserProfile(currentUser);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    checkSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserProfile = async (user: User) => {
