@@ -68,7 +68,9 @@ const UserProfile = () => {
         .update({
           first_name: formData.get('firstName') as string,
           last_name: formData.get('lastName') as string,
-          phone: formData.get('phone') as string
+          phone: formData.get('phone') as string,
+          birth_date: formData.get('birthDate') as string,
+          address: formData.get('address') as string
         })
         .eq('user_id', user?.id);
 
