@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Factures } from './Factures';
+import { AddProductModal } from './AddProductModal';
 
 interface Product {
   id: string;
@@ -274,10 +276,11 @@ export const AdminPanel = () => {
       </div>
 
       <Tabs defaultValue="products" className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full">
+        <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
+          <TabsTrigger value="factures">Factures</TabsTrigger>
         </TabsList>
 
         <TabsContent value="products">
@@ -285,10 +288,12 @@ export const AdminPanel = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Gestion des Produits
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter Produit
-                </Button>
+                <AddProductModal onProductAdded={loadAllData}>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter Produit
+                  </Button>
+                </AddProductModal>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -408,6 +413,10 @@ export const AdminPanel = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="factures">
+          <Factures />
         </TabsContent>
       </Tabs>
     </div>

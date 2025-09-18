@@ -12,11 +12,14 @@ import {
   Search,
   Edit,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Plus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RestockModal } from './RestockModal';
+import { Factures } from './Factures';
+import { AddProductModal } from './AddProductModal';
 
 interface ProductVariant {
   id: string;
@@ -305,15 +308,24 @@ export const VendorPanel = () => {
       )}
 
       <Tabs defaultValue="stock" className="space-y-6">
-        <TabsList className="grid grid-cols-2 w-full">
+        <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="stock">Gestion Stock</TabsTrigger>
           <TabsTrigger value="orders">Suivi Commandes</TabsTrigger>
+          <TabsTrigger value="factures">Factures</TabsTrigger>
         </TabsList>
 
         <TabsContent value="stock">
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des Stocks</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Gestion des Stocks
+                <AddProductModal onProductAdded={loadVendorData}>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un Produit
+                  </Button>
+                </AddProductModal>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -445,6 +457,10 @@ export const VendorPanel = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="factures">
+          <Factures />
         </TabsContent>
       </Tabs>
     </div>

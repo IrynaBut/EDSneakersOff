@@ -86,6 +86,84 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          created_at: string
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          metadata: Json | null
+          order_id: string | null
+          paid_date: string | null
+          payment_method: string | null
+          quantity: number | null
+          status: string
+          supplier_contact: string | null
+          supplier_name: string | null
+          total_amount: number
+          type: string
+          unit_price: number
+          updated_at: string
+          variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          metadata?: Json | null
+          order_id?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          quantity?: number | null
+          status?: string
+          supplier_contact?: string | null
+          supplier_name?: string | null
+          total_amount: number
+          type: string
+          unit_price: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          metadata?: Json | null
+          order_id?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          quantity?: number | null
+          status?: string
+          supplier_contact?: string | null
+          supplier_name?: string | null
+          total_amount?: number
+          type?: string
+          unit_price?: number
+          updated_at?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_points: {
         Row: {
           created_at: string
