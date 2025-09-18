@@ -36,6 +36,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [newsletterModal, setNewsletterModal] = useState<{ open: boolean; type: 'subscribe' | 'unsubscribe' } | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -118,6 +119,7 @@ const UserProfile = () => {
         description: 'Vos informations ont été mises à jour avec succès.',
       });
       setEditing(false);
+      setFormKey((prev) => prev + 1);
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -236,7 +238,7 @@ const UserProfile = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <form onSubmit={(e) => {
+                <form key={formKey} onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
                   handleUpdateProfile(formData);

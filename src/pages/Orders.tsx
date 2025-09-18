@@ -78,8 +78,8 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'pending': { label: 'Payée et en préparation', variant: 'secondary' as const },
-      'Payée et en préparation': { label: 'Payée et en préparation', variant: 'secondary' as const },
+      'pending': { label: 'En préparation', variant: 'secondary' as const },
+      'processing': { label: 'En préparation', variant: 'secondary' as const },
       'shipped': { label: 'Expédiée', variant: 'default' as const },
       'Expédiée': { label: 'Expédiée', variant: 'default' as const },
       'delivered': { label: 'Livrée', variant: 'outline' as const },
@@ -210,11 +210,11 @@ const Orders = () => {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <Badge variant={statusInfo.variant}>
-                          {statusInfo.label}
-                        </Badge>
                         <Badge variant={paymentInfo.variant}>
                           {paymentInfo.label}
+                        </Badge>
+                        <Badge variant={statusInfo.variant}>
+                          {statusInfo.label}
                         </Badge>
                       </div>
                     </div>

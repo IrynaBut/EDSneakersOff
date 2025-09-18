@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewsletterModalProps {
   open: boolean;
@@ -24,20 +25,23 @@ export const NewsletterModal = ({ open, onOpenChange, type, userEmail }: Newslet
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      const { error } = await supabase.functions.invoke('send-newsletter-confirmation', {
+        body: { email, type },
+      });
+
+      if (error) throw error;
+
       setConfirmed(true);
       
       if (type === 'subscribe') {
         toast({
           title: "Abonnement confirmé !",
-          description: "Vous allez recevoir un email de confirmation de votre abonnement à la newsletter.",
+          description: "Un email de confirmation vient d'être envoyé.",
         });
       } else {
         toast({
           title: "Désabonnement confirmé",
-          description: "Vous avez été désabonné de notre newsletter. Un email de confirmation vous a été envoyé.",
+          description: "Un email de confirmation vient d'être envoyé.",
         });
       }
     } catch (error) {
