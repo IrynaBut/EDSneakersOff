@@ -315,20 +315,20 @@ export const Factures = () => {
                          {getStatusLabel(invoice.status)}
                        </Badge>
                        <div className="flex items-center space-x-2">
-                         {invoice.status === 'overdue' && (
-                           <Button 
-                             size="sm" 
-                             variant="destructive"
-                             onClick={() => {
-                               toast.success('Une relance a été envoyée au fournisseur.', {
-                                 description: `Relance pour la facture ${invoice.invoice_number}`
-                               });
-                             }}
-                           >
-                             <Receipt className="h-4 w-4 mr-1" />
-                             Relancer le fournisseur
-                           </Button>
-                         )}
+                          {invoice.status === 'overdue' && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => {
+                                toast.success('Une relance a été envoyée au fournisseur.', {
+                                  description: `Relance pour la facture ${invoice.invoice_number}`
+                                });
+                              }}
+                            >
+                              <Receipt className="h-4 w-4 mr-1" />
+                              Relancer le fournisseur
+                            </Button>
+                          )}
                          <InvoicePreviewModal invoice={invoice}>
                            <Button size="sm" variant="outline">
                              <Eye className="h-4 w-4 mr-1" />

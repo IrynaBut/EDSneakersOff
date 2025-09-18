@@ -53,7 +53,8 @@ export const AdminPanel = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+const [searchTerm, setSearchTerm] = useState('');
+const [dateFilter, setDateFilter] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -87,7 +88,7 @@ export const AdminPanel = () => {
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+      setOrders((ordersData && ordersData.length ? ordersData : (await (async () => import('@/data/demoData')).then(m => m.demoOrders))) as any);
 
       // Charger les variants pour les alertes stock
       const { data: variantsData, error: variantsError } = await supabase
@@ -196,8 +197,13 @@ export const AdminPanel = () => {
   );
 
   const filteredOrders = orders.filter(o => 
-    o.order_number.toLowerCase().includes(searchTerm.toLowerCase())
+    o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (!dateFilter || new Date(o.created_at).toISOString().split('T')[0] === dateFilter)
   );
+
+  const isPaidStatus = (s: string) => ['shipped','delivered','completed'].includes(s);
+  const totalRevenue = orders.filter(o => isPaidStatus(o.status)).reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const filteredRevenue = dateFilter ? orders.filter(o => isPaidStatus(o.status) && new Date(o.created_at).toISOString().split('T')[0] === dateFilter).reduce((sum, o) => sum + (o.total_amount || 0), 0) : 0;
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Chargement...</div>;
@@ -207,14 +213,25 @@ export const AdminPanel = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Panneau d'Administration</h2>
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64"
-          />
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-40"
+            />
+          </div>
         </div>
       </div>
 
@@ -265,15 +282,18 @@ export const AdminPanel = () => {
             <BarChart3 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">
-              {orders
-                .filter(o => o.status === 'delivered' || o.status === 'shipped' || o.status === 'completed')
-                .reduce((sum, order) => sum + (order.total_amount || 0), 0)
-                .toFixed(2)}€
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Revenus des commandes payées
-            </p>
+            <div className="text-2xl font-bold text-green-500">{totalRevenue.toFixed(2)}€</div>
+            <p className="text-xs text-muted-foreground">Revenus totaux cumulés</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">CA sur la date sélectionnée</CardTitle>
+            <BarChart3 className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-500">{filteredRevenue.toFixed(2)}€</div>
+            <p className="text-xs text-muted-foreground">Basé sur les commandes payées du {dateFilter ? new Date(dateFilter).toLocaleDateString('fr-FR') : '—'}</p>
           </CardContent>
         </Card>
       </div>

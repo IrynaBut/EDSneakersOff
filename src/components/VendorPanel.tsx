@@ -13,7 +13,11 @@ import {
   Edit,
   Calendar,
   RefreshCw,
-  Plus
+  Plus,
+  MapPin,
+  CreditCard,
+  ExternalLink,
+  RotateCcw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -21,6 +25,7 @@ import { RestockModal } from './RestockModal';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
 import { OrderActions } from './OrderActions';
+import { demoOrders } from '@/data/demoData';
 
 interface ProductVariant {
   id: string;
@@ -88,7 +93,7 @@ export const VendorPanel = () => {
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders((ordersData as any) || []);
+      setOrders(((ordersData as any) && (ordersData as any).length ? (ordersData as any) : (demoOrders as any)) || []);
 
     } catch (error: any) {
       console.error('Error loading vendor data:', error);
@@ -152,13 +157,41 @@ export const VendorPanel = () => {
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesDate = !dateFilter || 
       new Date(o.created_at).toISOString().split('T')[0] === dateFilter;
-    
     return matchesSearch && matchesDate;
   });
 
+  const isPaidStatus = (s: string) => ['shipped', 'delivered', 'completed'].includes(s);
+  const sameDay = (isoStr: string, date: string) => new Date(isoStr).toISOString().split('T')[0] === date;
+
+  const totalRevenue = orders
+    .filter(o => isPaidStatus(o.status))
+    .reduce((sum, o) => sum + (o.total_amount || 0), 0);
+
+  const filteredRevenue = dateFilter
+    ? orders.filter(o => sameDay(o.created_at, dateFilter) && isPaidStatus(o.status))
+        .reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    : 0;
+
+  const statusFr = (s: string) => ({
+    pending: 'Payée et en préparation',
+    processing: 'Payée et en préparation',
+    confirmed: 'Payée et en préparation',
+    shipped: 'Expédiée',
+    delivered: 'Livrée',
+    completed: 'Livrée',
+    cancelled: 'Annulée'
+  } as Record<string, string>)[s] || s;
+
+  const canReturn = (o: any) => {
+    if (!(o.status === 'delivered' || o.status === 'completed')) return false;
+    const deliveryDate = new Date(o.created_at);
+    deliveryDate.setDate(deliveryDate.getDate() + 7); // livré ~7j après
+    const limit = new Date(deliveryDate);
+    limit.setDate(limit.getDate() + 30);
+    return new Date() <= limit;
+  };
   if (loading) {
     return <div className="flex justify-center items-center h-64">Chargement...</div>;
   }
@@ -240,30 +273,27 @@ export const VendorPanel = () => {
           </CardContent>
         </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {dateFilter ? 'Chiffre d\'Affaires (Jour)' : 'Chiffre d\'Affaires Total'}
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-500">
-                {filteredOrders
-                  .filter(o => o.status === 'delivered' || o.status === 'shipped' || o.status === 'completed')
-                  .reduce((sum, order) => sum + (order.total_amount || 0), 0)
-                  .toFixed(2)}€
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {dateFilter ? `Du ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Revenus totaux cumulés'}
-              </p>
-              {!dateFilter && (
-                <p className="text-xs text-primary font-medium mt-1">
-                  Basé sur toutes les commandes payées
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Chiffre d'Affaires Total</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-500">{totalRevenue.toFixed(2)}€</div>
+            <p className="text-xs text-muted-foreground">Revenus totaux cumulés</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">CA sur la date sélectionnée</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-500">{filteredRevenue.toFixed(2)}€</div>
+            <p className="text-xs text-muted-foreground">{dateFilter ? `Du ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Sélectionnez une date'}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Alertes stock faible */}
@@ -433,37 +463,69 @@ export const VendorPanel = () => {
             <CardContent>
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">#{order.order_number}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || 'Email non disponible'})
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                      </p>
+                  <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-medium">#{order.order_number}</h4>
+                        <p className="text-sm text-muted-foreground">Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})</p>
+                        <p className="text-sm text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{statusFr(order.status)}</Badge>
+                        <select
+                          value={order.status}
+                          onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                          className="px-3 py-1 border rounded text-sm"
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="confirmed">Confirmée</option>
+                          <option value="processing">En préparation</option>
+                          <option value="shipped">Expédiée</option>
+                          <option value="delivered">Livrée</option>
+                          <option value="completed">Terminée</option>
+                          <option value="cancelled">Annulée</option>
+                        </select>
+                      </div>
                     </div>
-                     <div className="flex items-center space-x-2">
-                       <select
-                         value={order.status}
-                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                         className="px-3 py-1 border rounded text-sm"
-                       >
-                         <option value="pending">En attente</option>
-                         <option value="confirmed">Confirmée</option>
-                         <option value="processing">En préparation</option>
-                        <option value="shipped">Expédiée</option>
-                        <option value="delivered">Livrée</option>
-                        <option value="cancelled">Annulée</option>
-                      </select>
-                      <OrderActions order={order} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {order.shipping_address && (
+                        <div className="bg-secondary/20 p-3 rounded">
+                          <div className="font-semibold flex items-center gap-2"><MapPin className="h-4 w-4"/>Adresse de livraison {order.shipping_address.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}</div>
+                          {order.shipping_address.is_pickup_point ? (
+                            <p className="text-sm mt-1">{order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                          ) : (
+                            <p className="text-sm mt-1">{order.shipping_address.first_name} {order.shipping_address.last_name}, {order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                          )}
+                        </div>
+                      )}
+                      {order.billing_address && (
+                        <div className="bg-secondary/20 p-3 rounded">
+                          <div className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4"/>Adresse de facturation</div>
+                          <p className="text-sm mt-1">{order.billing_address.first_name} {order.billing_address.last_name}, {order.billing_address.address_line_1}, {order.billing_address.postal_code} {order.billing_address.city}</p>
+                        </div>
+                      )}
                     </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                      {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
+                        <a className="inline-flex items-center text-primary hover:underline text-sm" href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`} target="_blank" rel="noreferrer">
+                          <ExternalLink className="h-3 w-3 mr-1"/> Suivi: {order.metadata.tracking_number}
+                        </a>
+                      )}
+                      {(order.status === 'delivered' || order.status === 'completed' || order.status === 'Livrée') && canReturn(order) && (
+                        <Button size="sm" variant="outline" className="ml-auto">
+                          <RotateCcw className="h-4 w-4 mr-1"/> Retourner un article
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">Points de fidélité gagnés: {Math.floor(order.total_amount)} pts</div>
                   </div>
                 ))}
                 {filteredOrders.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Aucune commande trouvée
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Aucune commande trouvée</div>
                 )}
               </div>
             </CardContent>
