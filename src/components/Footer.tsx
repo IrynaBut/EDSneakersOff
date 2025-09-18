@@ -27,6 +27,42 @@ const Footer = () => {
   const openSupportModal = (type: typeof supportModal.type) => {
     setSupportModal({ open: true, type });
   };
+
+  const handleFooterNewsletter = async (email: string) => {
+    try {
+      const response = await fetch('https://hsvfgfmvdymwcevisyhh.supabase.co/functions/v1/send-newsletter-confirmation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        // Show success message
+        const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
+        if (input) {
+          input.value = '';
+          input.placeholder = 'Inscription confirmée ! ✓';
+          setTimeout(() => {
+            input.placeholder = 'Votre email';
+          }, 3000);
+        }
+      } else {
+        throw new Error('Failed to subscribe');
+      }
+    } catch (error) {
+      console.error('Newsletter error:', error);
+      // Show error message
+      const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
+      if (input) {
+        input.placeholder = 'Erreur, réessayez';
+        setTimeout(() => {
+          input.placeholder = 'Votre email';
+        }, 3000);
+      }
+    }
+  };
   
   return (
     <footer className="bg-primary text-primary-foreground">
@@ -35,9 +71,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <img src={logo} alt="ED Sneakers" className="h-8 w-auto brightness-0 invert" />
-            </Link>
+          <Link to="/" className="flex items-center space-x-2">
+            <img src={logo} alt="EDSneakers" className="h-8 w-auto brightness-0 invert" />
+          </Link>
             <p className="text-sm text-primary-foreground/80">
               Votre destination premium pour les baskets de qualité. 
               Découvrez notre collection exclusive pour homme, femme et enfant.
@@ -153,8 +189,27 @@ const Footer = () => {
                 type="email" 
                 placeholder="Votre email"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const email = (e.target as HTMLInputElement).value;
+                    if (email) {
+                      // Handle newsletter subscription directly here
+                      handleFooterNewsletter(email);
+                    }
+                  }
+                }}
               />
-              <Button variant="secondary" size="sm" onClick={() => setNewsletterOpen(true)}>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={() => {
+                  const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
+                  if (input?.value) {
+                    handleFooterNewsletter(input.value);
+                  }
+                }}
+              >
                 <Mail className="h-4 w-4" />
               </Button>
             </div>

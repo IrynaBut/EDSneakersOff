@@ -72,7 +72,7 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
-            <img src={logo} alt="ED Sneakers" className="h-10 w-auto" />
+            <img src={logo} alt="EDSneakers" className="h-10 w-auto" />
             <div className="hidden sm:block">
               <span className="text-xl font-bold text-primary">EDSneakers</span>
               <p className="text-xs text-muted-foreground">Style & Qualité</p>
@@ -100,8 +100,8 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {/* Greeting */}
             {user && userProfile && (
-              <span className="text-sm text-muted-foreground">
-                Bonjour, {userProfile.first_name || userProfile.email}
+              <span className="text-sm text-foreground font-medium">
+                Bonjour, {userProfile.first_name || userProfile.email?.split('@')[0] || 'Utilisateur'}
               </span>
             )}
             

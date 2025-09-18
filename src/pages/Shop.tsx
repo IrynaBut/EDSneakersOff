@@ -34,7 +34,14 @@ const Shop = ({ category }: { category?: string }) => {
 
   const { products: allProducts, loading } = useProducts(category);
 
-  const sizes = ["28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"];
+  // Size filters based on category
+  const getSizes = () => {
+    if (category === "homme") return ["39", "40", "41", "42", "43", "44", "45", "46", "47"];
+    if (category === "femme") return ["36", "37", "38", "39", "40"];
+    if (category === "enfant") return ["28", "29", "30", "31", "32", "33", "34", "35"];
+    return ["28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47"];
+  };
+  const sizes = getSizes();
   const brands = ["Nike", "Adidas", "Puma", "New Balance", "Converse", "Vans"];
 
   const categoryTitle = category ? 
@@ -89,6 +96,14 @@ const Shop = ({ category }: { category?: string }) => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Back Button */}
+      <div className="container mx-auto px-4 pt-4">
+        <Button variant="ghost" onClick={() => window.history.back()} className="mb-4">
+          <ChevronDown className="w-4 h-4 mr-2 rotate-90" />
+          Retour
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="bg-secondary/30 py-8">
         <div className="container mx-auto px-4">

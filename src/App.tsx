@@ -11,7 +11,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Auth from "./pages/Auth";
-import Login from "./pages/Login";
+import Orders from "./pages/Orders";
 import Checkout from "./pages/Checkout";
 import TestAPI from "./pages/TestAPI";
 import UserProfile from "./pages/UserProfile";
@@ -46,10 +46,11 @@ const App = () => (
                     <Route path="/produit/:id" element={<ProductDetail />} />
                     <Route path="/favoris" element={<Favorites />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/connexion" element={<Login />} />
+                    <Route path="/login" element={<Auth />} />
+                    <Route path="/connexion" element={<Auth />} />
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/commande" element={<Checkout />} />
+                    <Route path="/commandes" element={<Orders />} />
                     <Route path="/gestion" element={<Management />} />
                     <Route path="/profile" element={<UserProfile />} />
                     <Route path="/faq" element={<FAQ />} />
