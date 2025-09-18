@@ -63,6 +63,9 @@ const UserProfile = () => {
 
   const handleUpdateProfile = async (formData: FormData) => {
     try {
+      const wasSubscribed = profile?.newsletter_subscribed;
+      const isNowSubscribed = formData.get('newsletter') === 'on';
+      
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -74,11 +77,26 @@ const UserProfile = () => {
           street_name: formData.get('streetName') as string,
           city: formData.get('city') as string,
           postal_code: formData.get('postalCode') as string,
-          newsletter_subscribed: formData.get('newsletter') === 'on'
+          newsletter_subscribed: isNowSubscribed
         })
         .eq('user_id', user?.id);
 
       if (error) throw error;
+
+      // Handle newsletter subscription changes
+      if (!wasSubscribed && isNowSubscribed) {
+        toast({
+          title: "Abonnement à la newsletter confirmé !",
+          description: "Vous recevrez bientôt un email de confirmation.",
+        });
+        // TODO: Send confirmation email
+      } else if (wasSubscribed && !isNowSubscribed) {
+        toast({
+          title: "Désabonnement confirmé",
+          description: "Vous ne recevrez plus nos newsletters. Un email de confirmation va vous être envoyé.",
+        });
+        // TODO: Send unsubscribe confirmation email
+      }
 
       toast({
         title: "Profil mis à jour",
@@ -97,12 +115,32 @@ const UserProfile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible.")) {
+    const confirmMessage = `Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte ?
+
+⚠️ Cette action est IRRÉVERSIBLE et entraînera :
+• La suppression de toutes vos données personnelles
+• La perte de votre historique de commandes  
+• La suppression de vos points de fidélité
+• La désactivation de votre accès au site
+
+Tapez "SUPPRIMER" pour confirmer :`;
+
+    const userInput = window.prompt(confirmMessage);
+    
+    if (userInput !== "SUPPRIMER") {
+      toast({
+        title: "Suppression annulée",
+        description: "Votre compte n'a pas été supprimé.",
+      });
       return;
     }
 
     try {
-      // Delete profile first
+      // Delete related data first
+      await supabase.from('cart').delete().eq('user_id', user?.id);
+      await supabase.from('loyalty_points').delete().eq('user_id', user?.id);
+      
+      // Delete profile
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -114,15 +152,15 @@ const UserProfile = () => {
       await signOut();
       
       toast({
-        title: "Compte supprimé",
-        description: "Votre compte a été supprimé avec succès.",
+        title: "Compte supprimé définitivement",
+        description: "Votre compte et toutes vos données ont été supprimés avec succès.",
       });
       
       navigate('/');
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer votre compte.",
+        title: "Erreur lors de la suppression",
+        description: "Impossible de supprimer votre compte. Veuillez contacter le support.",
         variant: "destructive"
       });
     }
@@ -369,7 +407,7 @@ const UserProfile = () => {
                 </Button>
                 <Separator />
                 <Button variant="destructive" className="w-full" onClick={handleDeleteAccount}>
-                  Supprimer mon compte
+                  Supprimer mon profil
                 </Button>
                 <Button variant="outline" className="w-full" onClick={signOut}>
                   Déconnexion

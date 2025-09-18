@@ -7,16 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, CreditCard, Truck, MapPin } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, CreditCard, Truck, MapPin, Lock, Calendar } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useOrders } from "@/hooks/useOrders";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const { items, totalAmount, clearCart } = useCart();
+  const { createOrder } = useOrders();
   const [loading, setLoading] = useState(false);
 
   // Redirect to login if user is not authenticated
@@ -41,34 +44,112 @@ const Checkout = () => {
     postalCode: '',
     country: 'France',
     paymentMethod: 'card',
-    notes: ''
+    notes: '',
+    cgvAccepted: false,
+    // Payment fields
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardName: ''
   });
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  const formatExpiryDate = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.cgvAccepted) {
+      toast({
+        title: "Conditions générales non acceptées",
+        description: "Vous devez accepter les conditions générales de vente pour continuer.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.paymentMethod === 'card') {
+      if (!formData.cardNumber || !formData.expiryDate || !formData.cvv || !formData.cardName) {
+        toast({
+          title: "Informations de paiement incomplètes",
+          description: "Veuillez remplir tous les champs de la carte bancaire.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      // Simulate order processing
+      // Create order data
+      const orderData = {
+        shipping_address: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          address_line_1: formData.address,
+          city: formData.city,
+          postal_code: formData.postalCode,
+          country: formData.country
+        },
+        billing_address: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          address_line_1: formData.address,
+          city: formData.city,
+          postal_code: formData.postalCode,
+          country: formData.country
+        },
+        payment_method: formData.paymentMethod,
+        notes: formData.notes
+      };
+
+      // Create the order
+      const { order, error } = await createOrder(orderData);
+      
+      if (error || !order) {
+        throw new Error(error || 'Erreur lors de la création de la commande');
+      }
+
+      // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Clear cart
-      await clearCart();
-      
       toast({
-        title: "Commande confirmée !",
-        description: "Votre commande a été enregistrée avec succès. Vous recevrez une confirmation par email.",
+        title: "Votre commande a été validée !",
+        description: `Commande #${order.order_number} confirmée. Vous allez recevoir un email de confirmation avec tous les détails.`,
       });
       
-      navigate('/');
-    } catch (error) {
+      navigate('/commandes');
+    } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors du traitement de votre commande.",
+        title: "Erreur lors du paiement",
+        description: error.message || "Une erreur est survenue lors du traitement de votre commande.",
         variant: "destructive"
       });
     } finally {
@@ -202,20 +283,74 @@ const Checkout = () => {
                     Méthode de Paiement
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <RadioGroup 
                     value={formData.paymentMethod} 
                     onValueChange={(value) => handleInputChange('paymentMethod', value)}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card">Carte bancaire (simulation)</Label>
+                      <Label htmlFor="card">Carte bancaire</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="paypal" id="paypal" />
-                      <Label htmlFor="paypal">PayPal (simulation)</Label>
+                      <Label htmlFor="paypal">PayPal</Label>
                     </div>
                   </RadioGroup>
+
+                  {formData.paymentMethod === 'card' && (
+                    <div className="space-y-4 mt-4 p-4 border rounded-lg">
+                      <div>
+                        <Label htmlFor="cardName">Nom sur la carte *</Label>
+                        <Input
+                          id="cardName"
+                          value={formData.cardName}
+                          onChange={(e) => handleInputChange('cardName', e.target.value)}
+                          placeholder="Jean DUPONT"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cardNumber">Numéro de carte *</Label>
+                        <Input
+                          id="cardNumber"
+                          value={formData.cardNumber}
+                          onChange={(e) => handleInputChange('cardNumber', formatCardNumber(e.target.value))}
+                          placeholder="1234 5678 9012 3456"
+                          maxLength={19}
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="expiryDate">Date d'expiration *</Label>
+                          <Input
+                            id="expiryDate"
+                            value={formData.expiryDate}
+                            onChange={(e) => handleInputChange('expiryDate', formatExpiryDate(e.target.value))}
+                            placeholder="MM/AA"
+                            maxLength={5}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cvv">CVV *</Label>
+                          <Input
+                            id="cvv"
+                            value={formData.cvv}
+                            onChange={(e) => handleInputChange('cvv', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                            placeholder="123"
+                            maxLength={3}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Lock className="w-4 h-4" />
+                        <span>Paiement sécurisé SSL</span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -272,17 +407,36 @@ const Checkout = () => {
                     <span>{totalAmount}€</span>
                   </div>
 
+                  {/* CGV Acceptance */}
+                  <div className="flex items-start space-x-2">
+                    <Checkbox 
+                      id="cgv" 
+                      checked={formData.cgvAccepted}
+                      onCheckedChange={(checked) => handleInputChange('cgvAccepted', checked as boolean)}
+                    />
+                    <Label htmlFor="cgv" className="text-sm leading-4">
+                      J'accepte les{' '}
+                      <Link to="/cgv" className="text-primary underline">
+                        Conditions Générales de Vente
+                      </Link>
+                      {' '}et confirme avoir lu la{' '}
+                      <Link to="/politique-confidentialite" className="text-primary underline">
+                        Politique de Confidentialité
+                      </Link>
+                    </Label>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full" 
                     size="lg"
-                    disabled={loading}
+                    disabled={loading || !formData.cgvAccepted}
                   >
-                    {loading ? "Traitement..." : `Confirmer la Commande - ${totalAmount}€`}
+                    {loading ? "Traitement du paiement..." : `Confirmer le Paiement - ${totalAmount}€`}
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
-                    En validant votre commande, vous acceptez nos conditions générales de vente.
+                    Paiement sécurisé par SSL. Vos données sont protégées.
                   </p>
                 </CardContent>
               </Card>
