@@ -45,6 +45,8 @@ interface Order {
   order_number: string;
   user_id: string;
   status: string;
+  payment_status?: string;
+  payment_method?: string;
   total_amount: number;
   created_at: string;
   metadata?: {
@@ -55,6 +57,25 @@ interface Order {
     last_name?: string;
     email: string;
   } | null;
+  shipping_address?: {
+    first_name?: string;
+    last_name?: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    postal_code: string;
+    country?: string;
+    is_pickup_point?: boolean;
+  };
+  billing_address?: {
+    first_name?: string;
+    last_name?: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    postal_code: string;
+    country?: string;
+  };
 }
 
 export const VendorPanel = () => {

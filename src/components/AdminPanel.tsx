@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
+import { demoOrders } from '@/data/demoData';
 
 interface Product {
   id: string;
@@ -88,7 +89,7 @@ const [dateFilter, setDateFilter] = useState('');
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders((ordersData && ordersData.length ? ordersData : (await (async () => import('@/data/demoData')).then(m => m.demoOrders))) as any);
+      setOrders((ordersData && ordersData.length ? ordersData : demoOrders) as any);
 
       // Charger les variants pour les alertes stock
       const { data: variantsData, error: variantsError } = await supabase
