@@ -105,8 +105,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           ? 'client'
           : 'client';
 
+        const fallbackFirstName = currentEmail === 'but.iryna@gmail.com'
+          ? 'Iryna'
+          : currentEmail === 'but_iryna@inbox.ru'
+          ? 'Thomas'
+          : currentEmail === 'iryna.but@epitech.digital'
+          ? 'Iryna'
+          : null;
+
         setRole(fallbackRole);
-        setFirstName(null); // Pas de prénom disponible
+        setFirstName(fallbackFirstName);
         setLoading(false);
         return;
       }
@@ -114,9 +122,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('Profile loaded:', profile);
       setFirstName(profile?.first_name ?? null);
       setRole(profile?.role ?? 'client');
-      setLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
+      // En cas d'erreur critique, utiliser des valeurs par défaut
+      setRole('client');
+      setFirstName(null);
+    } finally {
+      // TOUJOURS arrêter le chargement
       setLoading(false);
     }
   };
