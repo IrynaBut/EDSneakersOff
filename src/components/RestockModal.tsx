@@ -94,7 +94,7 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -102,7 +102,7 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-4 p-1">
           {/* Product Info */}
           <Card>
             <CardHeader className="pb-3">

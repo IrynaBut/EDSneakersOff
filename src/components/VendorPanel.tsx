@@ -225,13 +225,13 @@ export const VendorPanel = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Commandes Totales</CardTitle>
+            <CardTitle className="text-sm font-medium">Commandes {dateFilter ? 'du jour' : 'Totales'}</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{orders.length}</div>
+            <div className="text-2xl font-bold">{filteredOrders.length}</div>
             <p className="text-xs text-muted-foreground">
-              Toutes les commandes
+              {dateFilter ? `Le ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Toutes les commandes'}
             </p>
           </CardContent>
         </Card>
@@ -243,13 +243,13 @@ export const VendorPanel = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {orders
-                .filter(o => o.status === 'completed')
+              {filteredOrders
+                .filter(o => o.status === 'delivered')
                 .reduce((sum, order) => sum + (order.total_amount || 0), 0)
                 .toFixed(2)}€
             </div>
             <p className="text-xs text-muted-foreground">
-              Commandes terminées
+              {dateFilter ? `Du ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Commandes livrées'}
             </p>
           </CardContent>
         </Card>
@@ -439,11 +439,11 @@ export const VendorPanel = () => {
                         className="px-3 py-1 border rounded text-sm"
                       >
                         <option value="pending">En attente</option>
-                        <option value="processing">En traitement</option>
+                        <option value="confirmed">Confirmée</option>
+                        <option value="processing">En préparation</option>
                         <option value="shipped">Expédiée</option>
                         <option value="delivered">Livrée</option>
                         <option value="cancelled">Annulée</option>
-                        <option value="completed">Terminée</option>
                       </select>
                       <Badge variant={
                         order.status === 'completed' ? 'default' : 
