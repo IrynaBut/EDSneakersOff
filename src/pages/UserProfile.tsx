@@ -50,19 +50,19 @@ const UserProfile = () => {
             .from('profiles')
             .select('*')
             .eq('user_id', user.id)
-            .single(),
+            .maybeSingle(),
           getUserPoints()
         ]);
 
-        if (profileResult.error) throw profileResult.error;
+        if (profileResult.error && profileResult.error.code !== 'PGRST116') throw profileResult.error;
         
         // Redirect admin/vendor users to management dashboard
-        if (profileResult.data.role === 'admin' || profileResult.data.role === 'vendeur') {
+        if (profileResult.data?.role === 'admin' || profileResult.data?.role === 'vendeur') {
           navigate('/gestion');
           return;
         }
         
-        setProfile(profileResult.data);
+        setProfile(profileResult.data || { email: user.email });
         
         if (loyaltyResult.points) {
           setLoyaltyPoints(loyaltyResult.points);
@@ -81,23 +81,30 @@ const UserProfile = () => {
     try {
       const wasSubscribed = profile?.newsletter_subscribed;
       const isNowSubscribed = formData.get('newsletter') === 'on';
-      
-      const { error } = await supabase
+
+      const payload = {
+        user_id: user?.id as string,
+        email: (profile?.email || user?.email) as string,
+        first_name: (formData.get('firstName') as string) || null,
+        last_name: (formData.get('lastName') as string) || null,
+        phone: (formData.get('phone') as string) || null,
+        birth_date: (formData.get('birthDate') as string) || null,
+        street_number: (formData.get('streetNumber') as string) || null,
+        street_name: (formData.get('streetName') as string) || null,
+        city: (formData.get('city') as string) || null,
+        postal_code: (formData.get('postalCode') as string) || null,
+        newsletter_subscribed: isNowSubscribed
+      };
+
+      const { data, error } = await supabase
         .from('profiles')
-        .update({
-          first_name: formData.get('firstName') as string,
-          last_name: formData.get('lastName') as string,
-          phone: formData.get('phone') as string,
-          birth_date: formData.get('birthDate') as string,
-          street_number: formData.get('streetNumber') as string,
-          street_name: formData.get('streetName') as string,
-          city: formData.get('city') as string,
-          postal_code: formData.get('postalCode') as string,
-          newsletter_subscribed: isNowSubscribed
-        })
-        .eq('user_id', user?.id);
+        .upsert(payload, { onConflict: 'user_id' })
+        .select()
+        .maybeSingle();
 
       if (error) throw error;
+
+      setProfile(data || payload);
 
       // Handle newsletter subscription changes
       if (!wasSubscribed && isNowSubscribed) {
@@ -107,17 +114,15 @@ const UserProfile = () => {
       }
 
       toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été mises à jour avec succès.",
+        title: 'Profil mis à jour',
+        description: 'Vos informations ont été mises à jour avec succès.',
       });
       setEditing(false);
-      // Reload profile
-      window.location.reload();
     } catch (error) {
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible de mettre à jour votre profil.",
-        variant: "destructive"
+        variant: 'destructive',
       });
     }
   };
