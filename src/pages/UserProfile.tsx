@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLoyaltyPoints } from "@/hooks/useLoyaltyPoints";
+import { useFavorites } from "@/hooks/useFavorites";
 import { 
   User, 
   Mail, 
@@ -18,7 +20,8 @@ import {
   Heart,
   Settings,
   ArrowLeft,
-  AlertTriangle
+  AlertTriangle,
+  Star
 } from "lucide-react";
 import { NewsletterModal } from "@/components/NewsletterModal";
 
@@ -26,7 +29,10 @@ const UserProfile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { getUserPoints } = useLoyaltyPoints();
+  const { favorites } = useFavorites();
   const [profile, setProfile] = useState<any>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [newsletterModal, setNewsletterModal] = useState<{ open: boolean; type: 'subscribe' | 'unsubscribe' } | null>(null);
@@ -39,21 +45,28 @@ const UserProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+        const [profileResult, loyaltyResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single(),
+          getUserPoints()
+        ]);
 
-        if (error) throw error;
+        if (profileResult.error) throw profileResult.error;
         
         // Redirect admin/vendor users to management dashboard
-        if (data.role === 'admin' || data.role === 'vendeur') {
+        if (profileResult.data.role === 'admin' || profileResult.data.role === 'vendeur') {
           navigate('/gestion');
           return;
         }
         
-        setProfile(data);
+        setProfile(profileResult.data);
+        
+        if (loyaltyResult.points) {
+          setLoyaltyPoints(loyaltyResult.points);
+        }
       } catch (error) {
         console.error('Error fetching profile:', error);
       } finally {
@@ -384,6 +397,25 @@ const UserProfile = () => {
           <div className="space-y-6">
             <Card>
               <CardHeader>
+                <CardTitle>Points de fidélité</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-5 h-5 text-primary" />
+                    <span className="text-lg font-semibold">
+                      {loyaltyPoints?.points || 0} points
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Total gagné : {loyaltyPoints?.total_earned || 0} points
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Actions rapides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -396,7 +428,7 @@ const UserProfile = () => {
                 <Button variant="outline" className="w-full justify-start" asChild>
                   <a href="/favoris">
                     <Heart className="w-4 h-4 mr-2" />
-                    Mes favoris
+                    Mes favoris ({favorites.length})
                   </a>
                 </Button>
                 <Separator />

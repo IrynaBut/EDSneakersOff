@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useOrders } from "@/hooks/useOrders";
 import { PickupPointModal } from "@/components/PickupPointModal";
+import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ const Checkout = () => {
   
   const [selectedPickupPoint, setSelectedPickupPoint] = useState<any>(null);
   const [pickupPointModal, setPickupPointModal] = useState(false);
+  const [orderConfirmation, setOrderConfirmation] = useState<{ open: boolean; order: any } | null>(null);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -189,12 +191,13 @@ const Checkout = () => {
       // Clear cart after successful order
       await clearCart();
       
+      // Show confirmation modal
+      setOrderConfirmation({ open: true, order });
+      
       toast({
         title: "Votre commande a été validée !",
         description: `Commande #${order.order_number} confirmée. Vous allez recevoir un email de confirmation avec tous les détails.`,
       });
-      
-      navigate('/commandes');
     } catch (error: any) {
       toast({
         title: "Erreur lors du paiement",
@@ -648,6 +651,15 @@ const Checkout = () => {
           onSelectPoint={setSelectedPickupPoint}
           selectedPoint={selectedPickupPoint}
         />
+        
+        {/* Order Confirmation Modal */}
+        {orderConfirmation && (
+          <OrderConfirmationModal
+            open={orderConfirmation.open}
+            onOpenChange={() => setOrderConfirmation(null)}
+            order={orderConfirmation.order}
+          />
+        )}
       </div>
     </div>
   );

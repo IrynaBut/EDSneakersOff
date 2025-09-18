@@ -78,10 +78,13 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
+      'pending': { label: 'Payée et en préparation', variant: 'secondary' as const },
       'Payée et en préparation': { label: 'Payée et en préparation', variant: 'secondary' as const },
+      'shipped': { label: 'Expédiée', variant: 'default' as const },
       'Expédiée': { label: 'Expédiée', variant: 'default' as const },
+      'delivered': { label: 'Livrée', variant: 'outline' as const },
       'Livrée': { label: 'Livrée', variant: 'outline' as const },
-      cancelled: { label: 'Annulée', variant: 'destructive' as const }
+      'cancelled': { label: 'Annulée', variant: 'destructive' as const }
     };
     
     return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
@@ -89,9 +92,10 @@ const Orders = () => {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
-      paid: { label: 'Payée', variant: 'default' as const },
-      failed: { label: 'Paiement échoué', variant: 'destructive' as const },
-      refunded: { label: 'Remboursée', variant: 'outline' as const }
+      'pending': { label: 'En attente', variant: 'secondary' as const },
+      'paid': { label: 'Payée', variant: 'default' as const },
+      'failed': { label: 'Paiement échoué', variant: 'destructive' as const },
+      'refunded': { label: 'Remboursée', variant: 'outline' as const }
     };
     
     return statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
@@ -113,7 +117,8 @@ const Orders = () => {
   };
 
   const canReturn = (order: any) => {
-    if (order.status !== 'Livrée') return false;
+    const normalizedStatus = order.status === 'delivered' ? 'Livrée' : order.status;
+    if (normalizedStatus !== 'Livrée') return false;
     
     const deliveryDate = new Date(order.created_at);
     deliveryDate.setDate(deliveryDate.getDate() + 7); // Simulate delivery 7 days after order
@@ -351,14 +356,14 @@ const Orders = () => {
                     {/* Action Buttons */}
                     <Separator className="my-6" />
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                      {order.status === 'Livrée' ? (
+                      {(order.status === 'Livrée' || order.status === 'delivered') ? (
                         <div className="flex-1">
                           <h4 className="font-semibold">Besoin de retourner un article ?</h4>
                           <p className="text-sm text-muted-foreground">
                             Vous avez 30 jours pour retourner vos articles
                           </p>
                         </div>
-                      ) : order.status === 'Expédiée' ? (
+                      ) : (order.status === 'Expédiée' || order.status === 'shipped') ? (
                         <div className="flex-1">
                           <h4 className="font-semibold">Votre colis est en route !</h4>
                           <p className="text-sm text-muted-foreground">
@@ -369,8 +374,8 @@ const Orders = () => {
                         <div className="flex-1" />
                       )}
                       
-                      <div className="flex gap-2">
-                        {order.status === 'Livrée' && (
+                    <div className="flex gap-2">
+                        {(order.status === 'Livrée' || order.status === 'delivered') && (
                           <Button 
                             variant="outline" 
                             onClick={() => handleReturnRequest(order.id, order.order_number)}
@@ -381,7 +386,7 @@ const Orders = () => {
                             {canReturn(order) ? 'Retourner un article' : 'Délai de retour dépassé'}
                           </Button>
                         )}
-                        {order.status === 'Expédiée' && (
+                        {(order.status === 'Expédiée' || order.status === 'shipped') && (
                           <Button 
                             variant="default" 
                             onClick={() => handleTrackPackage(order.order_number)}
