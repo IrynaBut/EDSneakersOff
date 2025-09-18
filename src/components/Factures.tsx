@@ -1,21 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
   Download, 
   Eye, 
-  Search,
+  Search, 
   Calendar,
+  TrendingUp,
+  Receipt,
+  Users,
+  Filter,
   Euro,
   Building,
   User
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { InvoicePreviewModal } from './InvoicePreviewModal';
 
 interface Invoice {
   id: string;
@@ -35,6 +41,14 @@ interface Invoice {
   paid_date?: string;
   created_at: string;
   updated_at: string;
+  metadata?: {
+    client_name?: string;
+    client_email?: string;
+    product_name?: string;
+    tracking_number?: string;
+    restock_batch?: string;
+    delivery_date?: string;
+  };
 }
 
 export const Factures = () => {
@@ -42,6 +56,8 @@ export const Factures = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => {
     loadInvoices();
@@ -94,12 +110,18 @@ export const Factures = () => {
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      (invoice.supplier_name && invoice.supplier_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (invoice.metadata?.client_name && invoice.metadata.client_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (invoice.metadata?.client_email && invoice.metadata.client_email.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesDate = !dateFilter || 
       new Date(invoice.created_at).toISOString().split('T')[0] === dateFilter;
     
-    return matchesSearch && matchesDate;
+    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
+    
+    const matchesType = typeFilter === 'all' || invoice.type === typeFilter;
+    
+    return matchesSearch && matchesDate && matchesStatus && matchesType;
   });
 
   const supplierInvoices = filteredInvoices.filter(inv => inv.type === 'supplier');
@@ -148,6 +170,32 @@ export const Factures = () => {
               onChange={(e) => setDateFilter(e.target.value)}
               className="w-40"
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="paid">Payées</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="overdue">En retard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="client">Clients</SelectItem>
+                <SelectItem value="supplier">Fournisseurs</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
@@ -266,14 +314,22 @@ export const Factures = () => {
                       <Badge variant={getStatusColor(invoice.status)}>
                         {getStatusLabel(invoice.status)}
                       </Badge>
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Voir
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-1" />
-                        PDF
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <InvoicePreviewModal invoice={invoice}>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            Voir
+                          </Button>
+                        </InvoicePreviewModal>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => toast.success('Génération du PDF en cours...', { description: `Facture ${invoice.invoice_number}` })}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          PDF
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -308,15 +364,17 @@ export const Factures = () => {
                         {new Date(invoice.created_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={getStatusColor(invoice.status)}>
-                        {getStatusLabel(invoice.status)}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Voir
-                      </Button>
-                    </div>
+                     <div className="flex items-center space-x-2">
+                       <Badge variant={getStatusColor(invoice.status)}>
+                         {getStatusLabel(invoice.status)}
+                       </Badge>
+                       <InvoicePreviewModal invoice={invoice}>
+                         <Button size="sm" variant="outline">
+                           <Eye className="h-4 w-4 mr-1" />
+                           Voir
+                         </Button>
+                       </InvoicePreviewModal>
+                     </div>
                   </div>
                 ))}
                 {supplierInvoices.length === 0 && (
@@ -350,15 +408,17 @@ export const Factures = () => {
                         {new Date(invoice.created_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={getStatusColor(invoice.status)}>
-                        {getStatusLabel(invoice.status)}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Voir
-                      </Button>
-                    </div>
+                     <div className="flex items-center space-x-2">
+                       <Badge variant={getStatusColor(invoice.status)}>
+                         {getStatusLabel(invoice.status)}
+                       </Badge>
+                       <InvoicePreviewModal invoice={invoice}>
+                         <Button size="sm" variant="outline">
+                           <Eye className="h-4 w-4 mr-1" />
+                           Voir
+                         </Button>
+                       </InvoicePreviewModal>
+                     </div>
                   </div>
                 ))}
                 {clientInvoices.length === 0 && (

@@ -240,23 +240,23 @@ export const VendorPanel = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chiffre d'Affaires</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredOrders
-                .filter(o => o.status === 'delivered')
-                .reduce((sum, order) => sum + (order.total_amount || 0), 0)
-                .toFixed(2)}€
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {dateFilter ? `Du ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Commandes livrées'}
-            </p>
-          </CardContent>
-        </Card>
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-sm font-medium">Chiffre d'Affaires</CardTitle>
+             <TrendingUp className="h-4 w-4 text-green-500" />
+           </CardHeader>
+           <CardContent>
+             <div className="text-2xl font-bold">
+               {filteredOrders
+                 .filter(o => o.status === 'delivered' || o.status === 'shipped')
+                 .reduce((sum, order) => sum + (order.total_amount || 0), 0)
+                 .toFixed(2)}€
+             </div>
+             <p className="text-xs text-muted-foreground">
+               {dateFilter ? `Du ${new Date(dateFilter).toLocaleDateString('fr-FR')}` : 'Commandes payées'}
+             </p>
+           </CardContent>
+         </Card>
       </div>
 
       {/* Alertes stock faible */}
@@ -436,15 +436,15 @@ export const VendorPanel = () => {
                         {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <select
-                        value={order.status}
-                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                        className="px-3 py-1 border rounded text-sm"
-                      >
-                        <option value="pending">En attente</option>
-                        <option value="confirmed">Confirmée</option>
-                        <option value="processing">En préparation</option>
+                     <div className="flex items-center space-x-2">
+                       <select
+                         value={order.status}
+                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                         className="px-3 py-1 border rounded text-sm"
+                       >
+                         <option value="pending">En attente</option>
+                         <option value="confirmed">Confirmée</option>
+                         <option value="processing">En préparation</option>
                         <option value="shipped">Expédiée</option>
                         <option value="delivered">Livrée</option>
                         <option value="cancelled">Annulée</option>

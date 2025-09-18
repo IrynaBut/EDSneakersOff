@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Package, Truck, Calendar, Euro } from 'lucide-react';
+import { Package, Truck, Calendar, Euro, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,10 +35,18 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
   const [customSupplier, setCustomSupplier] = useState({
     name: '',
     contact: '',
+    email: '',
+    phone: '',
+    address: '',
     delay: '',
     price: 0.85
   });
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [savedPaymentMethods] = useState([
+    { id: 'card_1234', type: 'credit_card', brand: 'Visa', last4: '4242', expiry: '12/25', icon: '💳' },
+    { id: 'paypal_1', type: 'paypal', email: 'vendor@example.com', icon: '🔷' }
+  ]);
 
   const suppliers = [
     { id: 'nike-france', name: 'Nike France', delay: '3-5 jours', price: 0.85 },
@@ -61,11 +69,52 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
   const selectedPaymentMethod = paymentMethods.find(p => p.id === paymentMethod);
 
   const handleRestock = async () => {
+    setIsProcessing(true);
+    
     try {
-      // Update the stock first
+      // Simulate payment validation
+      const paymentSuccess = Math.random() > 0.2; // 80% success rate
+      const supplierStockAvailable = Math.random() > 0.1; // 90% stock available
+      
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (!supplierStockAvailable) {
+        toast.error('Paiement impossible : manque de stock chez le fournisseur. Contactez le fournisseur directement.', {
+          description: supplier === 'autre' ? customSupplier.contact : 'contact@fournisseur.fr',
+          duration: 8000,
+          action: {
+            label: 'Contacter',
+            onClick: () => {
+              const contact = supplier === 'autre' ? customSupplier.contact : 'contact@fournisseur.fr';
+              if (contact.includes('@')) {
+                window.location.href = `mailto:${contact}`;
+              } else {
+                window.location.href = `tel:${contact}`;
+              }
+            }
+          }
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!paymentSuccess) {
+        toast.error('Échec du paiement. Veuillez réessayer ou contacter votre banque.', {
+          description: 'Code erreur: PAYMENT_DECLINED',
+          duration: 6000,
+          action: {
+            label: 'Réessayer',
+            onClick: () => handleRestock()
+          }
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // Success - Update stock and create invoice
       onRestock(variant.id, quantity);
       
-      // Create invoice in database
       const invoiceNumber = `FACT-RST-${Date.now()}`;
       const currentSupplierInfo = supplier === 'autre' ? customSupplier : selectedSupplier;
       
@@ -88,23 +137,28 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           metadata: {
             restock_batch: `RST-${Date.now()}`,
             delivery_date: deliveryDate,
-            product_name: variant.products?.name
+            product_name: variant.products?.name,
+            supplier_email: supplier === 'autre' ? customSupplier.email : 'contact@fournisseur.fr',
+            supplier_phone: supplier === 'autre' ? customSupplier.phone : null
           }
         });
 
       if (invoiceError) {
         console.error('Error creating invoice:', invoiceError);
+        toast.error('Erreur lors de la sauvegarde de la facture');
+      } else {
+        toast.success('Votre paiement a bien été effectué. Un mail de confirmation avec la facture a été envoyé.', {
+          description: `Facture ${invoiceNumber} générée et sauvegardée`,
+          duration: 5000,
+        });
       }
-
-      toast.success('Votre paiement a bien été effectué. Un mail de confirmation avec la facture a été envoyé.', {
-        description: `Facture ${invoiceNumber} générée et sauvegardée`,
-        duration: 5000,
-      });
       
       setOpen(false);
     } catch (error) {
       console.error('Error during restock:', error);
       toast.error('Erreur lors du réapprovisionnement');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -208,26 +262,47 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
                 <CardTitle className="text-sm">Informations Fournisseur Personnalisé</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="supplier-name">Nom du fournisseur</Label>
-                    <Input
-                      id="supplier-name"
-                      placeholder="Ex: Nike Direct"
-                      value={customSupplier.name}
-                      onChange={(e) => setCustomSupplier(prev => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="supplier-contact">Contact</Label>
-                    <Input
-                      id="supplier-contact"
-                      placeholder="Email ou téléphone"
-                      value={customSupplier.contact}
-                      onChange={(e) => setCustomSupplier(prev => ({ ...prev, contact: e.target.value }))}
-                    />
-                  </div>
-                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                   <div className="space-y-1">
+                     <Label htmlFor="supplier-name">Nom du fournisseur</Label>
+                     <Input
+                       id="supplier-name"
+                       placeholder="Ex: Nike Direct"
+                       value={customSupplier.name}
+                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, name: e.target.value }))}
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <Label htmlFor="supplier-email">Email</Label>
+                     <Input
+                       id="supplier-email"
+                       type="email"
+                       placeholder="contact@fournisseur.com"
+                       value={customSupplier.email}
+                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, email: e.target.value }))}
+                     />
+                   </div>
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                   <div className="space-y-1">
+                     <Label htmlFor="supplier-phone">Téléphone</Label>
+                     <Input
+                       id="supplier-phone"
+                       placeholder="01 23 45 67 89"
+                       value={customSupplier.phone}
+                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, phone: e.target.value }))}
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <Label htmlFor="supplier-address">Adresse</Label>
+                     <Input
+                       id="supplier-address"
+                       placeholder="123 Rue Exemple, Paris"
+                       value={customSupplier.address}
+                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, address: e.target.value }))}
+                     />
+                   </div>
+                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label htmlFor="supplier-delay">Délai de livraison</Label>
@@ -270,17 +345,35 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{selectedPaymentMethod?.icon}</span>
-                <div>
-                  <div className="font-medium">{selectedPaymentMethod?.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Dernier mode utilisé
-                  </div>
-                </div>
-              </div>
-            </CardContent>
+             <CardContent>
+               {savedPaymentMethods.length > 0 ? (
+                 <div className="flex items-center gap-3">
+                   <span className="text-2xl">{savedPaymentMethods[0].icon}</span>
+                   <div>
+                     <div className="font-medium">
+                       {savedPaymentMethods[0].type === 'credit_card' 
+                         ? `${savedPaymentMethods[0].brand} •••• ${savedPaymentMethods[0].last4}` 
+                         : savedPaymentMethods[0].email}
+                     </div>
+                     <div className="text-xs text-muted-foreground">
+                       {savedPaymentMethods[0].type === 'credit_card' 
+                         ? `Expire ${savedPaymentMethods[0].expiry}` 
+                         : 'Compte PayPal vérifié'}
+                     </div>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="flex items-center gap-3">
+                   <span className="text-2xl">{selectedPaymentMethod?.icon}</span>
+                   <div>
+                     <div className="font-medium">{selectedPaymentMethod?.name}</div>
+                     <div className="text-xs text-muted-foreground">
+                       Nouveau mode de paiement
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </CardContent>
           </Card>
 
           {/* Payment Method Selection Dialog */}
@@ -289,24 +382,55 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
               <DialogHeader>
                 <DialogTitle>Choisir un Mode de Paiement</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
-                {paymentMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => {
-                      setPaymentMethod(method.id);
-                      setShowPaymentModal(false);
-                    }}
-                    className={`w-full p-3 border rounded-lg text-left hover:bg-accent transition-colors ${
-                      paymentMethod === method.id ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{method.icon}</span>
-                      <span className="font-medium">{method.name}</span>
-                    </div>
-                  </button>
-                ))}
+               <div className="space-y-3">
+                 <div className="text-sm font-medium mb-2">Méthodes sauvegardées</div>
+                 {savedPaymentMethods.map((method) => (
+                   <button
+                     key={method.id}
+                     onClick={() => {
+                       setPaymentMethod(method.type);
+                       setShowPaymentModal(false);
+                     }}
+                     className={`w-full p-3 border rounded-lg text-left hover:bg-accent transition-colors ${
+                       paymentMethod === method.type ? 'border-primary bg-primary/10' : 'border-border'
+                     }`}
+                   >
+                     <div className="flex items-center gap-3">
+                       <span className="text-xl">{method.icon}</span>
+                       <div>
+                         <div className="font-medium">
+                           {method.type === 'credit_card' 
+                             ? `${method.brand} •••• ${method.last4}` 
+                             : method.email}
+                         </div>
+                         <div className="text-xs text-muted-foreground">
+                           {method.type === 'credit_card' 
+                             ? `Expire ${method.expiry}` 
+                             : 'Compte vérifié'}
+                         </div>
+                       </div>
+                     </div>
+                   </button>
+                 ))}
+                 
+                 <div className="text-sm font-medium mb-2 pt-2 border-t">Nouveau mode de paiement</div>
+                 {paymentMethods.map((method) => (
+                   <button
+                     key={method.id}
+                     onClick={() => {
+                       setPaymentMethod(method.id);
+                       setShowPaymentModal(false);
+                     }}
+                     className={`w-full p-3 border rounded-lg text-left hover:bg-accent transition-colors ${
+                       paymentMethod === method.id ? 'border-primary bg-primary/10' : 'border-border'
+                     }`}
+                   >
+                     <div className="flex items-center gap-3">
+                       <span className="text-xl">{method.icon}</span>
+                       <span className="font-medium">{method.name}</span>
+                     </div>
+                   </button>
+                 ))}
               </div>
             </DialogContent>
           </Dialog>
@@ -371,15 +495,24 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           </Card>
 
           {/* Actions */}
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={handleRestock} className="bg-primary">
-              <Package className="h-4 w-4 mr-2" />
-              Confirmer la Commande
-            </Button>
-          </div>
+           <div className="flex gap-3 justify-end">
+             <Button variant="outline" onClick={() => setOpen(false)} disabled={isProcessing}>
+               Annuler
+             </Button>
+             <Button onClick={handleRestock} className="bg-primary" disabled={isProcessing}>
+               {isProcessing ? (
+                 <>
+                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                   Traitement en cours...
+                 </>
+               ) : (
+                 <>
+                   <Package className="h-4 w-4 mr-2" />
+                   Confirmer la Commande
+                 </>
+               )}
+             </Button>
+           </div>
         </div>
       </DialogContent>
     </Dialog>
