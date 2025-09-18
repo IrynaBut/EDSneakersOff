@@ -272,6 +272,7 @@ const Footer = () => {
       <NewsletterModal 
         open={newsletterOpen} 
         onOpenChange={setNewsletterOpen} 
+        type="subscribe"
       />
       <SupportModal 
         open={supportModal.open} 

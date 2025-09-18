@@ -76,10 +76,10 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: 'En attente de paiement', variant: 'secondary' as const },
-      confirmed: { label: 'En cours de préparation', variant: 'default' as const },
-      shipped: { label: 'Expédiée', variant: 'outline' as const },
-      delivered: { label: 'Livrée', variant: 'default' as const },
+      confirmed: { label: 'Commande reçue', variant: 'secondary' as const },
+      processing: { label: 'Traitée', variant: 'default' as const },
+      shipped: { label: 'Colis expédié', variant: 'outline' as const },
+      delivered: { label: 'Colis livré', variant: 'default' as const },
       cancelled: { label: 'Annulée', variant: 'destructive' as const }
     };
     
@@ -88,7 +88,6 @@ const Orders = () => {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: 'En attente de paiement', variant: 'secondary' as const },
       paid: { label: 'Payée', variant: 'default' as const },
       failed: { label: 'Paiement échoué', variant: 'destructive' as const },
       refunded: { label: 'Remboursée', variant: 'outline' as const }
@@ -116,6 +115,13 @@ const Orders = () => {
     toast({
       title: "Demande de retour initiée",
       description: `Votre demande de retour pour la commande ${orderNumber} a été prise en compte. Vous recevrez un email avec les instructions de retour.`,
+    });
+  };
+
+  const handleTrackPackage = (orderNumber: string) => {
+    toast({
+      title: "Suivi de colis",
+      description: `Colis ${orderNumber}: En transit vers votre point relais. Livraison prévue demain avant 18h. Numéro de suivi: FR${orderNumber.replace('EDN-', '')}XYZ`,
     });
   };
 
@@ -237,19 +243,38 @@ const Orders = () => {
                           <h4 className="font-semibold mb-3 flex items-center gap-2">
                             <Truck className="w-4 h-4" />
                             Adresse de livraison
+                            {order.shipping_address.is_pickup_point && (
+                              <Badge variant="outline" className="ml-2">Point Relais</Badge>
+                            )}
                           </h4>
                           <div className="bg-secondary/20 p-4 rounded-lg">
-                            <p className="font-medium">
-                              {order.shipping_address.first_name} {order.shipping_address.last_name}
-                            </p>
-                            <p>{order.shipping_address.address_line_1}</p>
-                            {order.shipping_address.address_line_2 && (
-                              <p>{order.shipping_address.address_line_2}</p>
+                            {order.shipping_address.is_pickup_point ? (
+                              <>
+                                <p className="font-medium text-primary mb-2">📦 Livraison en Point Relais</p>
+                                <p className="font-medium">{order.shipping_address.address_line_1}</p>
+                                {order.shipping_address.address_line_2 && (
+                                  <p>{order.shipping_address.address_line_2}</p>
+                                )}
+                                <p>{order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                  Pensez à apporter une pièce d'identité pour récupérer votre colis
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="font-medium">
+                                  {order.shipping_address.first_name} {order.shipping_address.last_name}
+                                </p>
+                                <p>{order.shipping_address.address_line_1}</p>
+                                {order.shipping_address.address_line_2 && (
+                                  <p>{order.shipping_address.address_line_2}</p>
+                                )}
+                                <p>
+                                  {order.shipping_address.postal_code} {order.shipping_address.city}
+                                </p>
+                                <p>{order.shipping_address.country || 'France'}</p>
+                              </>
                             )}
-                            <p>
-                              {order.shipping_address.postal_code} {order.shipping_address.city}
-                            </p>
-                            <p>{order.shipping_address.country || 'France'}</p>
                           </div>
                         </div>
                       )}
@@ -308,28 +333,50 @@ const Orders = () => {
                       </div>
                     </div>
 
-                    {/* Return Options for Delivered Orders */}
-                    {order.status === 'delivered' && (
-                      <>
-                        <Separator className="my-6" />
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-semibold">Besoin de retourner un article ?</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Vous avez 30 jours pour retourner vos articles
-                            </p>
-                          </div>
+                    {/* Action Buttons */}
+                    <Separator className="my-6" />
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                      {order.status === 'delivered' ? (
+                        <div className="flex-1">
+                          <h4 className="font-semibold">Besoin de retourner un article ?</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Vous avez 30 jours pour retourner vos articles
+                          </p>
+                        </div>
+                      ) : order.status === 'shipped' ? (
+                        <div className="flex-1">
+                          <h4 className="font-semibold">Votre colis est en route !</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Suivez l'évolution de votre livraison
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex-1" />
+                      )}
+                      
+                      <div className="flex gap-2">
+                        {order.status === 'delivered' && (
                           <Button 
                             variant="outline" 
                             onClick={() => handleReturnRequest(order.id, order.order_number)}
                             className="flex items-center gap-2"
                           >
                             <RotateCcw className="w-4 h-4" />
-                            Demander un retour
+                            Retourner un article
                           </Button>
-                        </div>
-                      </>
-                    )}
+                        )}
+                        {order.status === 'shipped' && (
+                          <Button 
+                            variant="default" 
+                            onClick={() => handleTrackPackage(order.order_number)}
+                            className="flex items-center gap-2"
+                          >
+                            <Truck className="w-4 h-4" />
+                            Suivre le colis
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );

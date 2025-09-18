@@ -17,8 +17,10 @@ import {
   Package,
   Heart,
   Settings,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle
 } from "lucide-react";
+import { NewsletterModal } from "@/components/NewsletterModal";
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
@@ -27,6 +29,7 @@ const UserProfile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [newsletterModal, setNewsletterModal] = useState<{ open: boolean; type: 'subscribe' | 'unsubscribe' } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -85,17 +88,9 @@ const UserProfile = () => {
 
       // Handle newsletter subscription changes
       if (!wasSubscribed && isNowSubscribed) {
-        toast({
-          title: "Abonnement à la newsletter confirmé !",
-          description: "Vous recevrez bientôt un email de confirmation.",
-        });
-        // TODO: Send confirmation email
+        setNewsletterModal({ open: true, type: 'subscribe' });
       } else if (wasSubscribed && !isNowSubscribed) {
-        toast({
-          title: "Désabonnement confirmé",
-          description: "Vous ne recevrez plus nos newsletters. Un email de confirmation va vous être envoyé.",
-        });
-        // TODO: Send unsubscribe confirmation email
+        setNewsletterModal({ open: true, type: 'unsubscribe' });
       }
 
       toast({
@@ -115,19 +110,18 @@ const UserProfile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    const confirmMessage = `Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte ?
-
-⚠️ Cette action est IRRÉVERSIBLE et entraînera :
-• La suppression de toutes vos données personnelles
-• La perte de votre historique de commandes  
-• La suppression de vos points de fidélité
-• La désactivation de votre accès au site
-
-Tapez "SUPPRIMER" pour confirmer :`;
-
-    const userInput = window.prompt(confirmMessage);
+    const confirmed = window.confirm(
+      `⚠️ ATTENTION : Cette action est IRRÉVERSIBLE\n\n` +
+      `Êtes-vous absolument sûr de vouloir supprimer définitivement votre compte ?\n\n` +
+      `Cela entraînera :\n` +
+      `• La suppression de toutes vos données personnelles\n` +
+      `• La perte de votre historique de commandes\n` +
+      `• La suppression de vos points de fidélité\n` +
+      `• La désactivation de votre accès au site\n\n` +
+      `Cliquez OK pour confirmer la suppression définitive.`
+    );
     
-    if (userInput !== "SUPPRIMER") {
+    if (!confirmed) {
       toast({
         title: "Suppression annulée",
         description: "Votre compte n'a pas été supprimé.",
@@ -406,7 +400,12 @@ Tapez "SUPPRIMER" pour confirmer :`;
                   </a>
                 </Button>
                 <Separator />
-                <Button variant="destructive" className="w-full" onClick={handleDeleteAccount}>
+                <Button 
+                  variant="destructive" 
+                  className="w-full" 
+                  onClick={handleDeleteAccount}
+                >
+                  <AlertTriangle className="w-4 h-4 mr-2" />
                   Supprimer mon profil
                 </Button>
                 <Button variant="outline" className="w-full" onClick={signOut}>
@@ -418,6 +417,16 @@ Tapez "SUPPRIMER" pour confirmer :`;
           </div>
         </div>
       </div>
+      
+      {/* Newsletter Modal */}
+      {newsletterModal && (
+        <NewsletterModal
+          open={newsletterModal.open}
+          onOpenChange={() => setNewsletterModal(null)}
+          type={newsletterModal.type}
+          userEmail={profile?.email}
+        />
+      )}
     </div>
   );
 };
