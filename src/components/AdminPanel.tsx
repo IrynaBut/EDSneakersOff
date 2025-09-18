@@ -12,7 +12,8 @@ import {
   Edit, 
   Trash2,
   Plus,
-  Search
+  Search,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -48,6 +49,7 @@ export const AdminPanel = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [variants, setVariants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -84,6 +86,15 @@ export const AdminPanel = () => {
 
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
+
+      // Charger les variants pour les alertes stock
+      const { data: variantsData, error: variantsError } = await supabase
+        .from('product_variants')
+        .select('*, products(name)')
+        .order('stock_quantity', { ascending: true });
+
+      if (variantsError) throw variantsError;
+      setVariants(variantsData || []);
 
     } catch (error: any) {
       console.error('Error loading admin data:', error);
@@ -248,15 +259,15 @@ export const AdminPanel = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus Total</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Stock Critique</CardTitle>
+            <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {orders.reduce((sum, order) => sum + (order.total_amount || 0), 0).toFixed(2)}€
+            <div className="text-2xl font-bold text-red-500">
+              {variants.filter(v => v.stock_quantity <= v.low_stock_threshold).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total des commandes
+              Produits à restocker
             </p>
           </CardContent>
         </Card>

@@ -142,10 +142,14 @@ const Management = () => {
         <div className="space-y-6">
           {profile.role === 'admin' ? (
             <Tabs defaultValue="admin" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="admin" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
                   Administration
+                </TabsTrigger>
+                <TabsTrigger value="vendor" className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Gestion Stock
                 </TabsTrigger>
                 <TabsTrigger value="users" className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -159,6 +163,10 @@ const Management = () => {
 
               <TabsContent value="admin">
                 <AdminPanel />
+              </TabsContent>
+
+              <TabsContent value="vendor">
+                <VendorPanel />
               </TabsContent>
 
               <TabsContent value="users">

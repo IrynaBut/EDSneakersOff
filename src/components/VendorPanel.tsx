@@ -10,10 +10,13 @@ import {
   TrendingUp,
   AlertCircle,
   Search,
-  Edit
+  Edit,
+  Calendar,
+  RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RestockModal } from './RestockModal';
 
 interface ProductVariant {
   id: string;
@@ -47,6 +50,7 @@ export const VendorPanel = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
 
   useEffect(() => {
     loadVendorData();
@@ -138,10 +142,15 @@ export const VendorPanel = () => {
     v.size.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredOrders = orders.filter(o => 
-    o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(o => {
+    const matchesSearch = o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      o.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDate = !dateFilter || 
+      new Date(o.created_at).toISOString().split('T')[0] === dateFilter;
+    
+    return matchesSearch && matchesDate;
+  });
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Chargement...</div>;
@@ -150,8 +159,29 @@ export const VendorPanel = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Panneau Vendeur</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Panneau Vendeur</h2>
+          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            <span>Aujourd'hui: {new Date().toLocaleDateString('fr-FR', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</span>
+          </div>
+        </div>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              placeholder="Filtrer par date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-40"
+            />
+          </div>
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher..."
@@ -224,28 +254,49 @@ export const VendorPanel = () => {
 
       {/* Alertes stock faible */}
       {lowStockVariants.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center text-red-700">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              Alertes Stock Faible
+            <CardTitle className="flex items-center justify-between text-red-700 dark:text-red-400">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                Alertes Stock Faible ({lowStockVariants.length} produits)
+              </div>
+              <Badge variant="destructive" className="text-xs">
+                Action requise
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {lowStockVariants.slice(0, 5).map((variant) => (
-                <div key={variant.id} className="flex items-center justify-between text-sm">
-                  <span>
-                    {variant.products?.name} - {variant.size} {variant.color && `(${variant.color})`}
-                  </span>
-                  <Badge variant="destructive">
-                    {variant.stock_quantity} restant(s)
-                  </Badge>
+                <div key={variant.id} className="flex items-center justify-between p-3 bg-white dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
+                  <div>
+                    <span className="font-medium text-red-900 dark:text-red-100">
+                      {variant.products?.name} - {variant.size} {variant.color && `(${variant.color})`}
+                    </span>
+                    <div className="text-xs text-red-600 dark:text-red-300 mt-1">
+                      Seuil d'alerte: {variant.low_stock_threshold} unités
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">
+                      {variant.stock_quantity} restant(s)
+                    </Badge>
+                    <RestockModal 
+                      variant={variant} 
+                      onRestock={(variantId, quantity) => updateStock(variantId, variant.stock_quantity + quantity)}
+                    >
+                      <Button size="sm" variant="outline" className="text-red-700 border-red-300 hover:bg-red-100">
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Restocker
+                      </Button>
+                    </RestockModal>
+                  </div>
                 </div>
               ))}
               {lowStockVariants.length > 5 && (
-                <p className="text-xs text-muted-foreground">
-                  Et {lowStockVariants.length - 5} autres produits...
+                <p className="text-xs text-muted-foreground text-center pt-2 border-t border-red-200">
+                  Et {lowStockVariants.length - 5} autres produits en rupture de stock...
                 </p>
               )}
             </div>
@@ -266,17 +317,37 @@ export const VendorPanel = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredVariants.map((variant) => (
-                  <div key={variant.id} className="flex items-center justify-between p-4 border rounded-lg">
+                {/* Produits en stock critique en premier */}
+                {filteredVariants
+                  .sort((a, b) => {
+                    const aLowStock = a.stock_quantity <= a.low_stock_threshold;
+                    const bLowStock = b.stock_quantity <= b.low_stock_threshold;
+                    if (aLowStock && !bLowStock) return -1;
+                    if (!aLowStock && bLowStock) return 1;
+                    return a.stock_quantity - b.stock_quantity;
+                  })
+                  .map((variant) => (
+                  <div key={variant.id} className={`flex items-center justify-between p-4 border rounded-lg ${
+                    variant.stock_quantity <= variant.low_stock_threshold 
+                      ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20' 
+                      : 'border-border'
+                  }`}>
                     <div className="flex-1">
-                      <h4 className="font-medium">
-                        {variant.products?.name}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">
+                          {variant.products?.name}
+                        </h4>
+                        {variant.stock_quantity <= variant.low_stock_threshold && (
+                          <Badge variant="destructive" className="text-xs">
+                            Stock critique
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         Taille: {variant.size} {variant.color && `• Couleur: ${variant.color}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Prix: {variant.products?.price}€
+                        Prix: {variant.products?.price}€ • Seuil d'alerte: {variant.low_stock_threshold}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -292,7 +363,8 @@ export const VendorPanel = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => updateStock(variant.id, variant.stock_quantity - 1)}
+                          onClick={() => updateStock(variant.id, Math.max(0, variant.stock_quantity - 1))}
+                          disabled={variant.stock_quantity <= 0}
                         >
                           -
                         </Button>
@@ -311,6 +383,17 @@ export const VendorPanel = () => {
                           +
                         </Button>
                       </div>
+                      {variant.stock_quantity <= variant.low_stock_threshold && (
+                        <RestockModal 
+                          variant={variant} 
+                          onRestock={(variantId, quantity) => updateStock(variantId, variant.stock_quantity + quantity)}
+                        >
+                          <Button size="sm" variant="destructive">
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Restocker
+                          </Button>
+                        </RestockModal>
+                      )}
                     </div>
                   </div>
                 ))}

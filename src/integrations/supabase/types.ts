@@ -382,39 +382,54 @@ export type Database = {
         Row: {
           address: string | null
           birth_date: string | null
+          city: string | null
           created_at: string
           email: string
           first_name: string | null
           id: string
           last_name: string | null
+          newsletter_subscribed: boolean | null
           phone: string | null
+          postal_code: string | null
           role: string
+          street_name: string | null
+          street_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
           birth_date?: string | null
+          city?: string | null
           created_at?: string
           email: string
           first_name?: string | null
           id?: string
           last_name?: string | null
+          newsletter_subscribed?: boolean | null
           phone?: string | null
+          postal_code?: string | null
           role?: string
+          street_name?: string | null
+          street_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
           birth_date?: string | null
+          city?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
+          newsletter_subscribed?: boolean | null
           phone?: string | null
+          postal_code?: string | null
           role?: string
+          street_name?: string | null
+          street_number?: string | null
           updated_at?: string
           user_id?: string
         }

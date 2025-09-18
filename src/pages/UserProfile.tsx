@@ -70,7 +70,11 @@ const UserProfile = () => {
           last_name: formData.get('lastName') as string,
           phone: formData.get('phone') as string,
           birth_date: formData.get('birthDate') as string,
-          address: formData.get('address') as string
+          street_number: formData.get('streetNumber') as string,
+          street_name: formData.get('streetName') as string,
+          city: formData.get('city') as string,
+          postal_code: formData.get('postalCode') as string,
+          newsletter_subscribed: formData.get('newsletter') === 'on'
         })
         .eq('user_id', user?.id);
 
@@ -239,15 +243,88 @@ const UserProfile = () => {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="address">Adresse postale</Label>
-                    <Input 
-                      id="address" 
-                      name="address"
-                      defaultValue={profile?.address || ''} 
-                      disabled={!editing}
-                    />
-                  </div>
+                   <div className="space-y-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <Label htmlFor="streetNumber">Numéro</Label>
+                         <Input 
+                           id="streetNumber" 
+                           name="streetNumber"
+                           placeholder="123"
+                           defaultValue={profile?.street_number || ''} 
+                           disabled={!editing}
+                         />
+                       </div>
+                       <div>
+                         <Label htmlFor="streetName">Rue</Label>
+                         <Input 
+                           id="streetName" 
+                           name="streetName"
+                           placeholder="rue de la Paix"
+                           list="streets"
+                           defaultValue={profile?.street_name || ''} 
+                           disabled={!editing}
+                         />
+                         <datalist id="streets">
+                           <option value="rue de la Paix" />
+                           <option value="avenue des Champs-Élysées" />
+                           <option value="boulevard Saint-Germain" />
+                           <option value="rue de Rivoli" />
+                           <option value="place de la République" />
+                           <option value="avenue de la République" />
+                           <option value="rue Victor Hugo" />
+                           <option value="place du Marché" />
+                         </datalist>
+                       </div>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <Label htmlFor="city">Ville</Label>
+                         <Input 
+                           id="city" 
+                           name="city"
+                           placeholder="Paris"
+                           list="cities"
+                           defaultValue={profile?.city || ''} 
+                           disabled={!editing}
+                         />
+                         <datalist id="cities">
+                           <option value="Paris" />
+                           <option value="Lyon" />
+                           <option value="Marseille" />
+                           <option value="Toulouse" />
+                           <option value="Nice" />
+                           <option value="Nantes" />
+                           <option value="Montpellier" />
+                           <option value="Strasbourg" />
+                         </datalist>
+                       </div>
+                       <div>
+                         <Label htmlFor="postalCode">Code postal</Label>
+                         <Input 
+                           id="postalCode" 
+                           name="postalCode"
+                           placeholder="75001"
+                           defaultValue={profile?.postal_code || ''} 
+                           disabled={!editing}
+                         />
+                       </div>
+                     </div>
+                   </div>
+
+                   <div className="flex items-center space-x-2">
+                     <input 
+                       type="checkbox" 
+                       id="newsletter" 
+                       name="newsletter"
+                       defaultChecked={profile?.newsletter_subscribed || false}
+                       disabled={!editing}
+                       className="rounded border-border"
+                     />
+                     <Label htmlFor="newsletter" className="text-sm">
+                       Abonné(e) à la newsletter
+                     </Label>
+                   </div>
 
                   <div className="flex gap-2">
                     {editing ? (
