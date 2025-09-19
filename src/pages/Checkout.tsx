@@ -125,6 +125,14 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      // Handle PayPal redirection
+      if (formData.paymentMethod === 'paypal') {
+        // Redirect to PayPal
+        const paypalUrl = `https://www.paypal.com/checkoutnow?token=${Date.now()}&amount=${totalAmount}&currency=EUR`;
+        window.location.href = paypalUrl;
+        return;
+      }
+
       // Create order data
       let shipping_address;
       

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, Truck, Calendar, Euro, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,8 +113,9 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
         return;
       }
 
-      // Success - Update stock and create invoice
-      onRestock(variant.id, quantity);
+      // Success - Mark variant as pending instead of updating stock immediately
+      // Stock will be updated when delivery is received
+      // Note: We'll store pending restock info in the invoice metadata for now
       
       const invoiceNumber = `FACT-RST-${Date.now()}`;
       const currentSupplierInfo = supplier === 'autre' ? customSupplier : selectedSupplier;
@@ -129,7 +131,7 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           total_amount: totalCost,
           unit_price: (variant.products?.price || 0) * (currentSupplierInfo?.price || 0.85),
           quantity: quantity,
-          status: 'paid',
+          status: 'pending', // Changed to pending since delivery hasn't arrived yet
           payment_method: paymentMethod,
           currency: 'EUR',
           due_date: new Date().toISOString(),
@@ -139,7 +141,12 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
             delivery_date: deliveryDate,
             product_name: variant.products?.name,
             supplier_email: supplier === 'autre' ? customSupplier.email : 'contact@fournisseur.fr',
-            supplier_phone: supplier === 'autre' ? customSupplier.phone : null
+            supplier_phone: supplier === 'autre' ? customSupplier.phone : null,
+            status: 'pending_delivery',
+            pending_restock: quantity,
+            restock_date: new Date().toISOString(),
+            supplier: currentSupplierInfo?.name || 'Fournisseur non spécifié',
+            expected_delivery: deliveryDate
           }
         });
 
@@ -147,9 +154,9 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
         console.error('Error creating invoice:', invoiceError);
         toast.error('Erreur lors de la sauvegarde de la facture');
       } else {
-        toast.success('Votre paiement a bien été effectué. Un mail de confirmation avec la facture a été envoyé.', {
-          description: `Facture ${invoiceNumber} générée et sauvegardée`,
-          duration: 5000,
+        toast.success(`Commande validée ! Statut: En attente de livraison. Le stock sera mis à jour à réception.`, {
+          description: `Facture ${invoiceNumber} - Livraison prévue le ${new Date(deliveryDate).toLocaleDateString('fr-FR')}`,
+          duration: 8000,
         });
       }
       
@@ -185,39 +192,46 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 p-1">
-          {/* Product Info */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Informations Produit</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Produit:</span>
-                <span className="font-medium">{variant.products?.name}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Taille:</span>
-                <Badge variant="outline">{variant.size}</Badge>
-              </div>
-              {variant.color && (
+        <Tabs defaultValue="order" className="space-y-4 p-1">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="order">Commande</TabsTrigger>
+            <TabsTrigger value="delivery">Livraison</TabsTrigger>
+            <TabsTrigger value="payment">Paiement</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="order" className="space-y-4">
+            {/* Product Info */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Informations Produit</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Couleur:</span>
-                  <Badge variant="outline">{variant.color}</Badge>
+                  <span className="text-sm text-muted-foreground">Produit:</span>
+                  <span className="font-medium">{variant.products?.name}</span>
                 </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Stock actuel:</span>
-                <Badge variant="destructive">{variant.stock_quantity}</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Prix de vente:</span>
-                <span className="font-medium">{variant.products?.price}€</span>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Taille:</span>
+                  <Badge variant="outline">{variant.size}</Badge>
+                </div>
+                {variant.color && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Couleur:</span>
+                    <Badge variant="outline">{variant.color}</Badge>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Stock actuel:</span>
+                  <Badge variant="destructive">{variant.stock_quantity}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Prix de vente:</span>
+                  <span className="font-medium">{variant.products?.price}€</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Restock Form */}
+            {/* Restock Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantité à commander</Label>
@@ -255,81 +269,138 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
               </div>
             </div>
 
-          {/* Custom Supplier Form */}
-          {supplier === 'autre' && (
-            <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+            {/* Custom Supplier Form */}
+            {supplier === 'autre' && (
+              <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Informations Fournisseur Personnalisé</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                     <div className="space-y-1">
+                       <Label htmlFor="supplier-name">Nom du fournisseur</Label>
+                       <Input
+                         id="supplier-name"
+                         placeholder="Ex: Nike Direct"
+                         value={customSupplier.name}
+                         onChange={(e) => setCustomSupplier(prev => ({ ...prev, name: e.target.value }))}
+                       />
+                     </div>
+                     <div className="space-y-1">
+                       <Label htmlFor="supplier-email">Email</Label>
+                       <Input
+                         id="supplier-email"
+                         type="email"
+                         placeholder="contact@fournisseur.com"
+                         value={customSupplier.email}
+                         onChange={(e) => setCustomSupplier(prev => ({ ...prev, email: e.target.value }))}
+                       />
+                     </div>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                     <div className="space-y-1">
+                       <Label htmlFor="supplier-phone">Téléphone</Label>
+                       <Input
+                         id="supplier-phone"
+                         placeholder="01 23 45 67 89"
+                         value={customSupplier.phone}
+                         onChange={(e) => setCustomSupplier(prev => ({ ...prev, phone: e.target.value }))}
+                       />
+                     </div>
+                     <div className="space-y-1">
+                       <Label htmlFor="supplier-address">Adresse</Label>
+                       <Input
+                         id="supplier-address"
+                         placeholder="123 Rue Exemple, Paris"
+                         value={customSupplier.address}
+                         onChange={(e) => setCustomSupplier(prev => ({ ...prev, address: e.target.value }))}
+                       />
+                     </div>
+                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="supplier-delay">Délai de livraison</Label>
+                      <Input
+                        id="supplier-delay"
+                        placeholder="Ex: 2-3 jours"
+                        value={customSupplier.delay}
+                        onChange={(e) => setCustomSupplier(prev => ({ ...prev, delay: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="supplier-price">Coefficient prix</Label>
+                      <Input
+                        id="supplier-price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        placeholder="0.85"
+                        value={customSupplier.price}
+                        onChange={(e) => setCustomSupplier(prev => ({ ...prev, price: parseFloat(e.target.value) || 0.85 }))}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="delivery" className="space-y-4">
+            {/* Full Delivery Address */}
+            <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Informations Fournisseur Personnalisé</CardTitle>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Adresse de Livraison Complète
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                   <div className="space-y-1">
-                     <Label htmlFor="supplier-name">Nom du fournisseur</Label>
-                     <Input
-                       id="supplier-name"
-                       placeholder="Ex: Nike Direct"
-                       value={customSupplier.name}
-                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, name: e.target.value }))}
-                     />
-                   </div>
-                   <div className="space-y-1">
-                     <Label htmlFor="supplier-email">Email</Label>
-                     <Input
-                       id="supplier-email"
-                       type="email"
-                       placeholder="contact@fournisseur.com"
-                       value={customSupplier.email}
-                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, email: e.target.value }))}
-                     />
-                   </div>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                   <div className="space-y-1">
-                     <Label htmlFor="supplier-phone">Téléphone</Label>
-                     <Input
-                       id="supplier-phone"
-                       placeholder="01 23 45 67 89"
-                       value={customSupplier.phone}
-                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, phone: e.target.value }))}
-                     />
-                   </div>
-                   <div className="space-y-1">
-                     <Label htmlFor="supplier-address">Adresse</Label>
-                     <Input
-                       id="supplier-address"
-                       placeholder="123 Rue Exemple, Paris"
-                       value={customSupplier.address}
-                       onChange={(e) => setCustomSupplier(prev => ({ ...prev, address: e.target.value }))}
-                     />
-                   </div>
-                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="supplier-delay">Délai de livraison</Label>
-                    <Input
-                      id="supplier-delay"
-                      placeholder="Ex: 2-3 jours"
-                      value={customSupplier.delay}
-                      onChange={(e) => setCustomSupplier(prev => ({ ...prev, delay: e.target.value }))}
-                    />
+                <div className="p-4 bg-accent/10 border rounded-lg">
+                  <div className="space-y-2">
+                    <div className="font-semibold text-primary">Éditions du Nord - Entrepôt</div>
+                    <div className="text-sm space-y-1">
+                      <div>15 Avenue des Entrepreneurs</div>
+                      <div>Bâtiment C - Zone Logistique</div>
+                      <div>59000 Lille, France</div>
+                      <div className="pt-2 border-t">
+                        <div className="font-medium">Contact Réception:</div>
+                        <div>📞 03 20 45 78 90</div>
+                        <div>📧 reception@editions-du-nord.fr</div>
+                        <div>⏰ Lun-Ven: 8h-17h</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="supplier-price">Coefficient prix</Label>
-                    <Input
-                      id="supplier-price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="1"
-                      placeholder="0.85"
-                      value={customSupplier.price}
-                      onChange={(e) => setCustomSupplier(prev => ({ ...prev, price: parseFloat(e.target.value) || 0.85 }))}
-                    />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Livraison prévue:
+                    </span>
+                    <Badge variant="secondary">
+                      {new Date(deliveryDate).toLocaleDateString('fr-FR')}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Délai estimé:</span>
+                    <span className="text-sm">{currentSupplier?.delay}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Transporteur:</span>
+                    <span className="text-sm">Chronopost Express</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Suivi:</span>
+                    <span className="text-sm">Email + SMS</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          )}
+          </TabsContent>
+
+          <TabsContent value="payment" className="space-y-4">
 
           {/* Payment Method */}
           <Card>
@@ -433,87 +504,59 @@ export const RestockModal = ({ variant, onRestock, children }: RestockModalProps
                  ))}
               </div>
             </DialogContent>
-          </Dialog>
+           </Dialog>
 
-          {/* Delivery Info */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Truck className="h-4 w-4" />
-                Informations de Livraison
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Livraison prévue:
-                </span>
-                <Badge variant="secondary">
-                  {new Date(deliveryDate).toLocaleDateString('fr-FR')}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Délai estimé:</span>
-                <span className="text-sm">{currentSupplier?.delay}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Mode de transport:</span>
-                <span className="text-sm">Express (Chronopost)</span>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Cost Summary */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Euro className="h-4 w-4" />
+                  Récapitulatif des Coûts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Prix unitaire fournisseur:</span>
+                  <span className="text-sm">
+                    {((variant.products?.price || 0) * (currentSupplier?.price || 0.85)).toFixed(2)}€
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Quantité:</span>
+                  <span className="text-sm">{quantity} unités</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center font-medium">
+                  <span>Total de la commande:</span>
+                  <span className="text-lg text-primary">{totalCost.toFixed(2)}€</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  * Prix hors taxes et frais de port
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Cost Summary */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Euro className="h-4 w-4" />
-                Récapitulatif des Coûts
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Prix unitaire fournisseur:</span>
-                <span className="text-sm">
-                  {((variant.products?.price || 0) * (currentSupplier?.price || 0.85)).toFixed(2)}€
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Quantité:</span>
-                <span className="text-sm">{quantity} unités</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center font-medium">
-                <span>Total de la commande:</span>
-                <span className="text-lg text-primary">{totalCost.toFixed(2)}€</span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                * Prix hors taxes et frais de port
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-           <div className="flex gap-3 justify-end">
-             <Button variant="outline" onClick={() => setOpen(false)} disabled={isProcessing}>
-               Annuler
-             </Button>
-             <Button onClick={handleRestock} className="bg-primary" disabled={isProcessing}>
-               {isProcessing ? (
-                 <>
-                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                   Traitement en cours...
-                 </>
-               ) : (
-                 <>
-                   <Package className="h-4 w-4 mr-2" />
-                   Confirmer la Commande
-                 </>
-               )}
-             </Button>
-           </div>
-        </div>
+            {/* Actions */}
+             <div className="flex gap-3 justify-end">
+               <Button variant="outline" onClick={() => setOpen(false)} disabled={isProcessing}>
+                 Annuler
+               </Button>
+               <Button onClick={handleRestock} className="bg-primary" disabled={isProcessing}>
+                 {isProcessing ? (
+                   <>
+                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                     Traitement en cours...
+                   </>
+                 ) : (
+                   <>
+                     <Package className="h-4 w-4 mr-2" />
+                     Confirmer la Commande
+                   </>
+                 )}
+               </Button>
+             </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
