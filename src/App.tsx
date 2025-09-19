@@ -23,6 +23,8 @@ import Management from "./pages/Management";
 import FAQ from "./components/FAQ";
 import RoleGuard from "./components/RoleGuard";
 import LoadingSpinner from "./components/LoadingSpinner";
+import CookieConsent from "./components/CookieConsent";
+import FloatingButton from "./components/FloatingButton";
 
 const queryClient = new QueryClient();
 
@@ -77,18 +79,8 @@ const AppContent = () => {
       </main>
       <Footer />
       
-      {/* Floating Support Button - smaller size */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          size="sm"
-          className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg"
-          asChild
-        >
-          <Link to="/faq">
-            ?
-          </Link>
-        </Button>
-      </div>
+      {/* Floating Support Button with Newsletter */}
+      <FloatingButton />
     </div>
   );
 };
@@ -103,6 +95,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
+              <CookieConsent />
             </BrowserRouter>
           </TooltipProvider>
         </FavoritesProvider>

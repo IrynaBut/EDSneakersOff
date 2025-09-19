@@ -78,15 +78,15 @@ const Orders = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'pending': { label: 'Pending validation', variant: 'secondary' as const },
-      'processing': { label: 'In preparation', variant: 'secondary' as const },
-      'confirmed': { label: 'In preparation', variant: 'secondary' as const },
-      'shipped': { label: 'Shipped', variant: 'default' as const },
-      'delivered': { label: 'Delivered', variant: 'outline' as const },
-      'completed': { label: 'Delivered', variant: 'outline' as const }
+      'pending': { label: 'En attente', variant: 'secondary' as const },
+      'processing': { label: 'En préparation', variant: 'secondary' as const },
+      'confirmed': { label: 'En préparation', variant: 'secondary' as const },
+      'shipped': { label: 'Expédiée', variant: 'default' as const },
+      'delivered': { label: 'Livrée', variant: 'outline' as const },
+      'completed': { label: 'Livrée', variant: 'outline' as const }
     };
     
-    return statusConfig[status as keyof typeof statusConfig] || { label: 'Pending validation', variant: 'secondary' as const };
+    return statusConfig[status as keyof typeof statusConfig] || { label: 'En attente', variant: 'secondary' as const };
   };
 
   const getPaymentStatusBadge = (status: string) => {
@@ -116,8 +116,8 @@ const Orders = () => {
   };
 
   const canReturn = (order: any) => {
-    const normalizedStatus = order.status === 'delivered' || order.status === 'completed' ? 'Delivered' : order.status;
-    if (normalizedStatus !== 'Delivered') return false;
+    const normalizedStatus = order.status === 'delivered' || order.status === 'completed' ? 'Livrée' : order.status;
+    if (normalizedStatus !== 'Livrée') return false;
     
     const deliveryDate = new Date(order.created_at);
     deliveryDate.setDate(deliveryDate.getDate() + 7); // Simulate delivery 7 days after order
