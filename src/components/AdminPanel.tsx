@@ -483,11 +483,17 @@ const [statusFilter, setStatusFilter] = useState('');
             <CardContent>
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="p-6 border rounded-lg space-y-4 bg-card">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div>
+                  <div key={order.id} className="p-4 border rounded-lg space-y-4 bg-card/50">
+                    {/* Order Header */}
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                      <div className="space-y-1">
                         <h4 className="font-semibold text-lg">#{order.order_number}</h4>
-                        <p className="text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Client: {order.profiles?.first_name || 'Marie'} {order.profiles?.last_name || 'Durand'} ({order.profiles?.email || 'marie.durand@gmail.com'})
+                        </p>
+                        <p className="text-sm font-medium">
+                          {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <select
@@ -503,104 +509,67 @@ const [statusFilter, setStatusFilter] = useState('');
                           <option value="completed">Terminée</option>
                         </select>
                         <Badge variant={
+                          order.status === 'shipped' ? 'default' :
+                          order.status === 'delivered' ? 'default' :
                           order.status === 'completed' ? 'default' : 
                           order.status === 'cancelled' ? 'destructive' : 'secondary'
                         }>
-                          {order.status}
+                          {order.status === 'shipped' ? 'Expédiée' : 
+                           order.status === 'delivered' ? 'Livrée' :
+                           order.status === 'pending' ? 'En attente' :
+                           order.status === 'processing' ? 'En traitement' :
+                           order.status === 'completed' ? 'Terminée' :
+                           order.status === 'cancelled' ? 'Annulée' : order.status}
                         </Badge>
-                        {order.status === 'shipped' && order.metadata?.tracking_number && (
-                          <Button variant="outline" size="sm" className="ml-2">
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            Suivi: {order.metadata.tracking_number}
-                          </Button>
-                        )}
                       </div>
                     </div>
 
-                    {/* Informations client */}
-                    <div className="bg-primary/5 p-4 rounded-lg">
-                      <h5 className="font-semibold mb-3 flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Informations Client
-                      </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Nom du client</label>
-                          <p className="font-medium text-lg">{order.profiles?.first_name || 'Marie'} {order.profiles?.last_name || 'Durand'}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Email</label>
-                          <p className="font-medium">{order.profiles?.email || 'marie.durand@gmail.com'}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Mode de paiement</label>
-                          <p className="font-medium">{order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'Carte bancaire'}</p>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Date de commande</label>
-                          <p className="font-medium">{new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Adresses */}
+                    {/* Addresses Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <h5 className="font-semibold mb-3 flex items-center gap-2 text-green-800">
+                      <div className="bg-secondary/30 p-3 rounded">
+                        <div className="flex items-center gap-2 mb-2">
                           <Package className="h-4 w-4"/>
-                          Adresse de livraison 
-                          {order.shipping_address?.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}
-                        </h5>
+                          <span className="font-medium">Adresse de livraison</span>
+                          {order.shipping_address?.is_pickup_point && <Badge variant="outline" className="text-xs">Point Relais</Badge>}
+                        </div>
                         {order.shipping_address?.is_pickup_point ? (
-                          <div className="space-y-1">
-                            <p className="font-medium text-base">{order.shipping_address?.address_line_1 || 'Point Relais - Tabac du Centre'}</p>
-                            {order.shipping_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
-                            <p className="font-medium">{order.shipping_address?.postal_code || '75002'} {order.shipping_address?.city || 'Paris'}</p>
-                            <p className="text-sm text-muted-foreground">{order.shipping_address?.country || 'France'}</p>
-                          </div>
+                          <p className="text-sm">
+                            {order.shipping_address?.address_line_1 || 'Point Relais - Tabac du Centre'}, {order.shipping_address?.postal_code || '75002'} {order.shipping_address?.city || 'Paris'}
+                          </p>
                         ) : (
-                          <div className="space-y-1">
-                            <p className="font-medium text-base">{order.shipping_address?.first_name || 'Marie'} {order.shipping_address?.last_name || 'Durand'}</p>
-                            <p className="font-medium">{order.shipping_address?.address_line_1 || '12 Rue des Lilas'}</p>
-                            {order.shipping_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
-                            <p className="font-medium">{order.shipping_address?.postal_code || '69001'} {order.shipping_address?.city || 'Lyon'}</p>
-                            <p className="text-sm text-muted-foreground">{order.shipping_address?.country || 'France'}</p>
-                          </div>
+                          <p className="text-sm">
+                            {order.shipping_address?.first_name || 'Marie'} {order.shipping_address?.last_name || 'Durand'}, {order.shipping_address?.address_line_1 || '12 Rue des Lilas'}, {order.shipping_address?.postal_code || '69001'} {order.shipping_address?.city || 'Lyon'}
+                          </p>
                         )}
                       </div>
                       
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h5 className="font-semibold mb-3 flex items-center gap-2 text-blue-800">
+                      <div className="bg-secondary/30 p-3 rounded">
+                        <div className="flex items-center gap-2 mb-2">
                           <BarChart3 className="h-4 w-4"/>
-                          Adresse de facturation
-                        </h5>
-                        <div className="space-y-1">
-                          <p className="font-medium text-base">{order.billing_address?.first_name || 'Marie'} {order.billing_address?.last_name || 'Durand'}</p>
-                          <p className="font-medium">{order.billing_address?.address_line_1 || '12 Rue des Lilas'}</p>
-                          {order.billing_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.billing_address.address_line_2}</p>}
-                          <p className="font-medium">{order.billing_address?.postal_code || '69001'} {order.billing_address?.city || 'Lyon'}</p>
-                          <p className="text-sm text-muted-foreground">{order.billing_address?.country || 'France'}</p>
+                          <span className="font-medium">Adresse de facturation</span>
                         </div>
+                        <p className="text-sm">
+                          {order.billing_address?.first_name || 'Marie'} {order.billing_address?.last_name || 'Durand'}, {order.billing_address?.address_line_1 || '12 Rue des Lilas'}, {order.billing_address?.postal_code || '69001'} {order.billing_address?.city || 'Lyon'}
+                        </p>
                       </div>
                     </div>
 
+                    {/* Articles Section */}
                     {order.order_items && order.order_items.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        <div className="font-semibold">Articles</div>
+                      <div className="bg-secondary/20 p-3 rounded">
+                        <div className="font-semibold mb-3">Articles</div>
                         <div className="space-y-2">
                           {order.order_items.map((it, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-2 border rounded">
-                              <div className="flex items-center gap-3">
-                                <div>
-                                  <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
-                                  </div>
+                            <div key={idx} className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{it.products?.name || 'Nike Air Max 270'}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
                                 </div>
                               </div>
-                              <div className="text-right text-sm">
-                                <div>Qté: {it.quantity}</div>
-                                <div>{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
+                              <div className="text-right">
+                                <div className="text-sm">Qté: {it.quantity}</div>
+                                <div className="text-sm font-medium">{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
                               </div>
                             </div>
                           ))}
@@ -608,12 +577,28 @@ const [statusFilter, setStatusFilter] = useState('');
                       </div>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2 pt-2">
-                      <Badge variant="secondary">
-                        Paiement: {order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'Carte bancaire'}
-                      </Badge>
-                      {order.payment_status && (
-                        <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
+                    {/* Payment, Status and Actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">
+                          Paiement: {order.payment_method === 'card' ? 'card' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'card'}
+                        </Badge>
+                        <Badge variant="outline">
+                          État: {order.payment_status === 'paid' ? 'Payé' : 'En attente'}
+                        </Badge>
+                        <div className="text-sm text-muted-foreground">
+                          Points de fidélité gagnés: {Math.floor(order.total_amount)} pts
+                        </div>
+                      </div>
+                      {order.status === 'shipped' && order.metadata?.tracking_number && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1"/>
+                          Suivi Colis
+                        </Button>
                       )}
                     </div>
                   </div>
