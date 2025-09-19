@@ -77,6 +77,7 @@ const Orders = () => {
   }, [user, navigate]);
 
   const getStatusBadge = (status: string) => {
+    // Strict mapping to allowed statuses only
     const statusConfig = {
       'pending': { label: 'En attente', variant: 'secondary' as const },
       'processing': { label: 'En préparation', variant: 'secondary' as const },
@@ -86,7 +87,9 @@ const Orders = () => {
       'completed': { label: 'Livrée', variant: 'outline' as const }
     };
     
-    return statusConfig[status as keyof typeof statusConfig] || { label: 'En attente', variant: 'secondary' as const };
+    // Only return allowed French statuses
+    const config = statusConfig[status as keyof typeof statusConfig];
+    return config || { label: 'En attente', variant: 'secondary' as const };
   };
 
   const getPaymentStatusBadge = (status: string) => {

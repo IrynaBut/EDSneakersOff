@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X, Cookie } from "lucide-react";
+import CookiePreferencesModal from "./CookiePreferencesModal";
 
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   useEffect(() => {
     const hasConsented = localStorage.getItem('cookie-consent');
@@ -45,7 +47,12 @@ const CookieConsent = () => {
                 <Button onClick={handleDecline} variant="outline" size="sm">
                   Refuser
                 </Button>
-                <Button variant="ghost" size="sm" className="text-xs">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs"
+                  onClick={() => setShowPreferences(true)}
+                >
                   Gérer les préférences
                 </Button>
               </div>
@@ -61,6 +68,11 @@ const CookieConsent = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <CookiePreferencesModal 
+        isOpen={showPreferences} 
+        onClose={() => setShowPreferences(false)} 
+      />
     </div>
   );
 };

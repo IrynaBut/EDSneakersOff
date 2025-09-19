@@ -87,16 +87,16 @@ const FloatingButton = () => {
       <div className="flex flex-col gap-1">
         <Button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg"
+          className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg"
         >
-          <Mail className="w-4 h-4" />
+          <Mail className="w-3 h-3" />
         </Button>
         <Button
           asChild
-          className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg"
+          className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg"
         >
           <Link to="/faq">
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-3 h-3" />
           </Link>
         </Button>
       </div>
