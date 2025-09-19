@@ -240,12 +240,12 @@ const Footer = () => {
             © {currentYear} ED Sneakers. Tous droits réservés.
           </div>
           <div className="flex flex-wrap gap-6 text-sm">
-            <button 
-              onClick={() => openSupportModal('legal')}
+            <Link 
+              to="/mentions-legales"
               className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
               Mentions Légales
-            </button>
+            </Link>
             <button 
               onClick={() => openSupportModal('cgv')}
               className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
