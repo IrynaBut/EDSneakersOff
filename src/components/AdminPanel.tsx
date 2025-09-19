@@ -46,6 +46,20 @@ interface Order {
   status: string;
   total_amount: number;
   created_at: string;
+  profiles?: {
+    first_name?: string;
+    last_name?: string;
+    email: string;
+  } | null;
+  order_items?: {
+    product_id: string;
+    variant_id: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    products?: { name: string; main_image_url?: string };
+    product_variants?: { size: string; color?: string };
+  }[];
 }
 
 export const AdminPanel = () => {
@@ -400,19 +414,34 @@ const [dateFilter, setDateFilter] = useState('');
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des Commandes</CardTitle>
+              <CardTitle>Gestion des Commandes - Sneakers & Baskets</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Vue administrative des commandes de sneakers avec filtres avancés
+              </p>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
+                <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
                       <h4 className="font-medium">#{order.order_number}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
                       </p>
+                      {/* Display order items (sneakers) */}
+                      <div className="mt-2">
+                        {order.order_items?.map((item, idx) => (
+                          <div key={idx} className="text-sm text-muted-foreground">
+                            • {item.products?.name} - Taille {item.product_variants?.size} ({item.product_variants?.color}) - Qté: {item.quantity}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <select
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
@@ -433,6 +462,7 @@ const [dateFilter, setDateFilter] = useState('');
                       </Badge>
                     </div>
                   </div>
+                </div>
                 ))}
               </div>
             </CardContent>

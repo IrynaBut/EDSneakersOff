@@ -86,7 +86,7 @@ export const demoOrders: DemoOrder[] = [
     order_items: [
       {
         product_id: 'p-1', variant_id: 'v-1', quantity: 1, unit_price: 149.90, total_price: 149.90,
-        products: { name: 'Baskets Élite', main_image_url: 'https://images.unsplash.com/photo-1542293787938-c9e299b88054?w=300' },
+        products: { name: 'Nike Air Max 270', main_image_url: 'https://images.unsplash.com/photo-1542293787938-c9e299b88054?w=300' },
         product_variants: { size: '42', color: 'Noir' }
       }
     ]
@@ -98,7 +98,7 @@ export const demoOrders: DemoOrder[] = [
     status: 'delivered',
     payment_status: 'paid',
     payment_method: 'paypal',
-    total_amount: 89.90,
+    total_amount: 189.99,
     created_at: iso(d2),
     metadata: { tracking_number: 'FR2445678ABC' },
     profiles: { first_name: 'Thomas', last_name: 'Bernard', email: 'thomas.bernard@example.com' },
@@ -112,9 +112,9 @@ export const demoOrders: DemoOrder[] = [
     },
     order_items: [
       {
-        product_id: 'p-2', variant_id: 'v-2', quantity: 1, unit_price: 89.90, total_price: 89.90,
-        products: { name: 'Sweat Confort', main_image_url: 'https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=300' },
-        product_variants: { size: 'M', color: 'Gris' }
+        product_id: 'p-2', variant_id: 'v-2', quantity: 1, unit_price: 189.99, total_price: 189.99,
+        products: { name: 'Adidas Ultra Boost 22', main_image_url: 'https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=300' },
+        product_variants: { size: '44', color: 'Blanc' }
       }
     ]
   },
@@ -125,7 +125,7 @@ export const demoOrders: DemoOrder[] = [
     status: 'processing',
     payment_status: 'paid',
     payment_method: 'card',
-    total_amount: 49.90,
+    total_amount: 129.95,
     created_at: iso(d3),
     profiles: { first_name: 'Clara', last_name: 'Petit', email: 'clara.petit@example.com' },
     shipping_address: {
@@ -138,9 +138,9 @@ export const demoOrders: DemoOrder[] = [
     },
     order_items: [
       {
-        product_id: 'p-3', variant_id: 'v-3', quantity: 1, unit_price: 49.90, total_price: 49.90,
-        products: { name: 'T‑shirt Bio', main_image_url: 'https://images.unsplash.com/photo-1520975922215-230f6c0f9621?w=300' },
-        product_variants: { size: 'S', color: 'Blanc' }
+        product_id: 'p-3', variant_id: 'v-3', quantity: 1, unit_price: 129.95, total_price: 129.95,
+        products: { name: 'Converse Chuck Taylor All Star', main_image_url: 'https://images.unsplash.com/photo-1520975922215-230f6c0f9621?w=300' },
+        product_variants: { size: '38', color: 'Rouge' }
       }
     ]
   },
@@ -151,7 +151,7 @@ export const demoOrders: DemoOrder[] = [
     status: 'completed',
     payment_status: 'paid',
     payment_method: 'bank_transfer',
-    total_amount: 129.00,
+    total_amount: 179.00,
     created_at: iso(d4),
     profiles: { first_name: 'Nadia', last_name: 'Martin', email: 'nadia.martin@example.com' },
     shipping_address: {
@@ -164,15 +164,121 @@ export const demoOrders: DemoOrder[] = [
     },
     order_items: [
       {
-        product_id: 'p-4', variant_id: 'v-4', quantity: 1, unit_price: 129.00, total_price: 129.00,
-        products: { name: 'Veste Urbain', main_image_url: 'https://images.unsplash.com/photo-1520975594086-2208d157c9e2?w=300' },
-        product_variants: { size: 'L', color: 'Kaki' }
+        product_id: 'p-4', variant_id: 'v-4', quantity: 1, unit_price: 179.00, total_price: 179.00,
+        products: { name: 'Puma RS-X Reinvention', main_image_url: 'https://images.unsplash.com/photo-1520975594086-2208d157c9e2?w=300' },
+        product_variants: { size: '43', color: 'Bleu Marine' }
+      }
+    ]
+  },
+  {
+    id: 'demo-ord-5',
+    order_number: 'EDN-2025-262-7890',
+    user_id: 'demo-user-5',
+    status: 'shipped',
+    payment_status: 'paid',
+    payment_method: 'card',
+    total_amount: 199.99,
+    created_at: iso(d1),
+    metadata: { tracking_number: 'FR2627890DEF' },
+    profiles: { first_name: 'Lucas', last_name: 'Moreau', email: 'lucas.moreau@example.com' },
+    shipping_address: {
+      first_name: 'Lucas', last_name: 'Moreau',
+      address_line_1: '78 Boulevard Voltaire', city: 'Marseille', postal_code: '13001', country: 'France'
+    },
+    billing_address: {
+      first_name: 'Lucas', last_name: 'Moreau',
+      address_line_1: '78 Boulevard Voltaire', city: 'Marseille', postal_code: '13001', country: 'France'
+    },
+    order_items: [
+      {
+        product_id: 'p-5', variant_id: 'v-5', quantity: 1, unit_price: 199.99, total_price: 199.99,
+        products: { name: 'Jordan 1 Mid', main_image_url: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=300' },
+        product_variants: { size: '41', color: 'Noir/Rouge' }
+      }
+    ]
+  },
+  {
+    id: 'demo-ord-6',
+    order_number: 'EDN-2025-245-1111',
+    user_id: 'demo-user-6',
+    status: 'pending',
+    payment_status: 'paid',
+    payment_method: 'paypal',
+    total_amount: 159.90,
+    created_at: iso(d2),
+    profiles: { first_name: 'Sophie', last_name: 'Leroy', email: 'sophie.leroy@example.com' },
+    shipping_address: {
+      is_pickup_point: true,
+      address_line_1: 'Point Relais Chronopost', city: 'Toulouse', postal_code: '31000', country: 'France'
+    },
+    billing_address: {
+      first_name: 'Sophie', last_name: 'Leroy',
+      address_line_1: '45 Rue de la République', city: 'Toulouse', postal_code: '31000', country: 'France'
+    },
+    order_items: [
+      {
+        product_id: 'p-6', variant_id: 'v-6', quantity: 1, unit_price: 159.90, total_price: 159.90,
+        products: { name: 'Vans Old Skool', main_image_url: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=300' },
+        product_variants: { size: '39', color: 'Noir/Blanc' }
+      }
+    ]
+  },
+  {
+    id: 'demo-ord-7',
+    order_number: 'EDN-2025-263-2222',
+    user_id: 'demo-user-7',
+    status: 'delivered',
+    payment_status: 'paid',
+    payment_method: 'card',
+    total_amount: 369.98,
+    created_at: iso(d3),
+    metadata: { tracking_number: 'FR2632222GHI' },
+    profiles: { first_name: 'Pierre', last_name: 'Dubois', email: 'pierre.dubois@example.com' },
+    shipping_address: {
+      first_name: 'Pierre', last_name: 'Dubois',
+      address_line_1: '12 Avenue des Champs', city: 'Strasbourg', postal_code: '67000', country: 'France'
+    },
+    billing_address: {
+      first_name: 'Pierre', last_name: 'Dubois',
+      address_line_1: '12 Avenue des Champs', city: 'Strasbourg', postal_code: '67000', country: 'France'
+    },
+    order_items: [
+      {
+        product_id: 'p-7', variant_id: 'v-7', quantity: 2, unit_price: 184.99, total_price: 369.98,
+        products: { name: 'New Balance 990v5', main_image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300' },
+        product_variants: { size: '42', color: 'Gris' }
+      }
+    ]
+  },
+  {
+    id: 'demo-ord-8',
+    order_number: 'EDN-2025-220-3333',
+    user_id: 'demo-user-8',
+    status: 'completed',
+    payment_status: 'paid',
+    payment_method: 'bank_transfer',
+    total_amount: 139.95,
+    created_at: iso(d4),
+    profiles: { first_name: 'Emma', last_name: 'Rousseau', email: 'emma.rousseau@example.com' },
+    shipping_address: {
+      first_name: 'Emma', last_name: 'Rousseau',
+      address_line_1: '88 Rue Saint-Antoine', city: 'Nantes', postal_code: '44000', country: 'France'
+    },
+    billing_address: {
+      first_name: 'Emma', last_name: 'Rousseau',
+      address_line_1: '88 Rue Saint-Antoine', city: 'Nantes', postal_code: '44000', country: 'France'
+    },
+    order_items: [
+      {
+        product_id: 'p-8', variant_id: 'v-8', quantity: 1, unit_price: 139.95, total_price: 139.95,
+        products: { name: 'Reebok Club C 85', main_image_url: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=300' },
+        product_variants: { size: '37', color: 'Blanc/Vert' }
       }
     ]
   }
 ];
 
-// CA basé sur commandes payées: shipped + delivered + completed = 149.90 + 89.90 + 129.00 = 368.80€
+// CA basé sur commandes payées: shipped + delivered + completed = 149.90 + 189.99 + 179.00 + 199.99 + 369.98 + 139.95 = 1228.81€ (nouvelle cohérence)
 export const demoClientInvoices: DemoInvoice[] = [
   {
     id: 'demo-inv-c1',

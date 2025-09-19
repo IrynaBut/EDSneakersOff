@@ -178,8 +178,12 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
 
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+      o.profiles?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o.profiles?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      (o.profiles?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+    const matchesDate = !dateFilter || 
+      new Date(o.created_at).toISOString().split('T')[0] === dateFilter;
+    return matchesSearch && matchesDate;
   });
 
   const isPaidStatus = (s: string) => ['shipped', 'delivered', 'completed'].includes(s);
@@ -230,15 +234,25 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
               })}</span>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64"
-            />
-          </div>
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher commande..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-64"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <Input
+            type="date"
+            placeholder="Filtrer par date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-40"
+          />
+        </div>
         </div>
 
         <Card>
