@@ -45,13 +45,37 @@ interface Order {
   order_number: string;
   user_id: string;
   status: string;
+  payment_status?: string;
+  payment_method?: string;
   total_amount: number;
   created_at: string;
+  metadata?: {
+    tracking_number?: string;
+  };
   profiles?: {
     first_name?: string;
     last_name?: string;
     email: string;
   } | null;
+  shipping_address?: {
+    first_name?: string;
+    last_name?: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    postal_code: string;
+    country?: string;
+    is_pickup_point?: boolean;
+  };
+  billing_address?: {
+    first_name?: string;
+    last_name?: string;
+    address_line_1: string;
+    address_line_2?: string;
+    city: string;
+    postal_code: string;
+    country?: string;
+  };
   order_items?: {
     product_id: string;
     variant_id: string;
@@ -429,7 +453,7 @@ const [statusFilter, setStatusFilter] = useState('');
                   <div className="flex items-center space-x-2">
                     <Search className="h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher..."
+                      placeholder="Rechercher commande..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-64"
@@ -462,60 +486,107 @@ const [statusFilter, setStatusFilter] = useState('');
             <CardContent>
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
-                <div key={order.id} className="p-4 border rounded-lg space-y-3">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div>
-                      <h4 className="font-medium">#{order.order_number}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                      </p>
-                       {/* Display order items (sneakers) */}
-                       <div className="mt-2">
-                         {order.order_items?.map((item, idx) => (
-                           <div key={idx} className="text-sm text-muted-foreground">
-                             • {item.products?.name} - Taille {item.product_variants?.size} ({item.product_variants?.color}) - Qté: {item.quantity}
-                           </div>
-                         ))}
-                       </div>
-                       {/* Track Package button for shipped orders */}
-                       {(order.status === 'shipped' || order.status === 'Expédiée') && (
-                         <Button
-                           size="sm"
-                           variant="outline"
-                           onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=TRACK${order.order_number}`, '_blank')}
-                           className="mt-2"
-                         >
-                           <ExternalLink className="h-4 w-4 mr-1"/>
-                           Suivi Colis
-                         </Button>
-                       )}
+                  <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-medium">#{order.order_number}</h4>
+                        <p className="text-sm text-muted-foreground">Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})</p>
+                        <p className="text-sm text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={order.status}
+                          onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                          className="px-3 py-1 border rounded text-sm"
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="processing">En traitement</option>
+                          <option value="shipped">Expédiée</option>
+                          <option value="delivered">Livrée</option>
+                          <option value="cancelled">Annulée</option>
+                          <option value="completed">Terminée</option>
+                        </select>
+                        <Badge variant={
+                          order.status === 'completed' ? 'default' : 
+                          order.status === 'cancelled' ? 'destructive' : 'secondary'
+                        }>
+                          {order.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={order.status}
-                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                        className="px-3 py-1 border rounded text-sm"
-                      >
-                        <option value="pending">En attente</option>
-                        <option value="processing">En traitement</option>
-                        <option value="shipped">Expédiée</option>
-                        <option value="delivered">Livrée</option>
-                        <option value="cancelled">Annulée</option>
-                        <option value="completed">Terminée</option>
-                      </select>
-                      <Badge variant={
-                        order.status === 'completed' ? 'default' : 
-                        order.status === 'cancelled' ? 'destructive' : 'secondary'
-                      }>
-                        {order.status}
-                      </Badge>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {order.shipping_address && (
+                        <div className="bg-secondary/20 p-3 rounded">
+                          <div className="font-semibold flex items-center gap-2">
+                            <Package className="h-4 w-4"/>
+                            Adresse de livraison 
+                            {order.shipping_address.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}
+                          </div>
+                          {order.shipping_address.is_pickup_point ? (
+                            <p className="text-sm mt-1">{order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                          ) : (
+                            <p className="text-sm mt-1">{order.shipping_address.first_name} {order.shipping_address.last_name}, {order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                          )}
+                        </div>
+                      )}
+                      {order.billing_address && (
+                        <div className="bg-secondary/20 p-3 rounded">
+                          <div className="font-semibold flex items-center gap-2">
+                            <BarChart3 className="h-4 w-4"/>
+                            Adresse de facturation
+                          </div>
+                          <p className="text-sm mt-1">{order.billing_address.first_name} {order.billing_address.last_name}, {order.billing_address.address_line_1}, {order.billing_address.postal_code} {order.billing_address.city}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {order.order_items && order.order_items.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="font-semibold">Articles</div>
+                        <div className="space-y-2">
+                          {order.order_items.map((it, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex items-center gap-3">
+                                <div>
+                                  <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right text-sm">
+                                <div>Qté: {it.quantity}</div>
+                                <div>{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                      {order.payment_status && (
+                        <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
+                      )}
+                      {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
+                          className="ml-auto"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1"/>
+                          Suivi Colis
+                        </Button>
+                      )}
                     </div>
                   </div>
-                </div>
                 ))}
+                {filteredOrders.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">Aucune commande trouvée</div>
+                )}
               </div>
             </CardContent>
           </Card>
