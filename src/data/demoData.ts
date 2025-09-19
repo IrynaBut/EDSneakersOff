@@ -74,14 +74,16 @@ export const demoOrders: DemoOrder[] = [
     total_amount: 149.90,
     created_at: iso(d1),
     metadata: { tracking_number: 'FR2611234XYZ' },
-    profiles: { first_name: 'Marie', last_name: 'Durand', email: 'marie.durand@example.com' },
+    profiles: { first_name: 'Marie', last_name: 'Durand', email: 'marie.durand@gmail.com' },
     shipping_address: {
       first_name: 'Marie', last_name: 'Durand',
-      address_line_1: '12 Rue des Lilas', city: 'Lyon', postal_code: '69001', country: 'France'
+      address_line_1: '12 Rue des Lilas', address_line_2: 'Appartement 3B', 
+      city: 'Lyon', postal_code: '69001', country: 'France'
     },
     billing_address: {
       first_name: 'Marie', last_name: 'Durand',
-      address_line_1: '12 Rue des Lilas', city: 'Lyon', postal_code: '69001', country: 'France'
+      address_line_1: '12 Rue des Lilas', address_line_2: 'Appartement 3B', 
+      city: 'Lyon', postal_code: '69001', country: 'France'
     },
     order_items: [
       {
@@ -101,14 +103,16 @@ export const demoOrders: DemoOrder[] = [
     total_amount: 189.99,
     created_at: iso(d2),
     metadata: { tracking_number: 'FR2445678ABC' },
-    profiles: { first_name: 'Thomas', last_name: 'Bernard', email: 'thomas.bernard@example.com' },
+    profiles: { first_name: 'Thomas', last_name: 'Bernard', email: 'thomas.bernard@hotmail.fr' },
     shipping_address: {
       is_pickup_point: true,
-      address_line_1: 'Relais – Tabac du Centre', city: 'Paris', postal_code: '75002', country: 'France'
+      address_line_1: 'Relais Colis - Tabac du Centre', address_line_2: '15 Place de la République', 
+      city: 'Paris', postal_code: '75002', country: 'France'
     },
     billing_address: {
       first_name: 'Thomas', last_name: 'Bernard',
-      address_line_1: '8 Avenue Victor Hugo', city: 'Paris', postal_code: '75016', country: 'France'
+      address_line_1: '8 Avenue Victor Hugo', address_line_2: 'Résidence Les Jardins', 
+      city: 'Paris', postal_code: '75016', country: 'France'
     },
     order_items: [
       {
@@ -127,14 +131,16 @@ export const demoOrders: DemoOrder[] = [
     payment_method: 'card',
     total_amount: 129.95,
     created_at: iso(d3),
-    profiles: { first_name: 'Clara', last_name: 'Petit', email: 'clara.petit@example.com' },
+    profiles: { first_name: 'Clara', last_name: 'Petit', email: 'clara.petit@orange.fr' },
     shipping_address: {
       first_name: 'Clara', last_name: 'Petit',
-      address_line_1: '22 Rue Pasteur', city: 'Bordeaux', postal_code: '33000', country: 'France'
+      address_line_1: '22 Rue Pasteur', address_line_2: 'Bâtiment A, Porte 5', 
+      city: 'Bordeaux', postal_code: '33000', country: 'France'
     },
     billing_address: {
       first_name: 'Clara', last_name: 'Petit',
-      address_line_1: '22 Rue Pasteur', city: 'Bordeaux', postal_code: '33000', country: 'France'
+      address_line_1: '22 Rue Pasteur', address_line_2: 'Bâtiment A, Porte 5', 
+      city: 'Bordeaux', postal_code: '33000', country: 'France'
     },
     order_items: [
       {
@@ -153,14 +159,16 @@ export const demoOrders: DemoOrder[] = [
     payment_method: 'bank_transfer',
     total_amount: 179.00,
     created_at: iso(d4),
-    profiles: { first_name: 'Nadia', last_name: 'Martin', email: 'nadia.martin@example.com' },
+    profiles: { first_name: 'Nadia', last_name: 'Martin', email: 'nadia.martin@yahoo.fr' },
     shipping_address: {
       first_name: 'Nadia', last_name: 'Martin',
-      address_line_1: "5 Chemin des Vignes", city: 'Nice', postal_code: '06000', country: 'France'
+      address_line_1: "5 Chemin des Vignes", address_line_2: 'Villa Les Palmiers', 
+      city: 'Nice', postal_code: '06000', country: 'France'
     },
     billing_address: {
       first_name: 'Nadia', last_name: 'Martin',
-      address_line_1: "5 Chemin des Vignes", city: 'Nice', postal_code: '06000', country: 'France'
+      address_line_1: "5 Chemin des Vignes", address_line_2: 'Villa Les Palmiers', 
+      city: 'Nice', postal_code: '06000', country: 'France'
     },
     order_items: [
       {
@@ -180,14 +188,16 @@ export const demoOrders: DemoOrder[] = [
     total_amount: 199.99,
     created_at: iso(d1),
     metadata: { tracking_number: 'FR2627890DEF' },
-    profiles: { first_name: 'Lucas', last_name: 'Moreau', email: 'lucas.moreau@example.com' },
+    profiles: { first_name: 'Lucas', last_name: 'Moreau', email: 'lucas.moreau@free.fr' },
     shipping_address: {
       first_name: 'Lucas', last_name: 'Moreau',
-      address_line_1: '78 Boulevard Voltaire', city: 'Marseille', postal_code: '13001', country: 'France'
+      address_line_1: '78 Boulevard Voltaire', address_line_2: '2ème étage, porte droite', 
+      city: 'Marseille', postal_code: '13001', country: 'France'
     },
     billing_address: {
       first_name: 'Lucas', last_name: 'Moreau',
-      address_line_1: '78 Boulevard Voltaire', city: 'Marseille', postal_code: '13001', country: 'France'
+      address_line_1: '78 Boulevard Voltaire', address_line_2: '2ème étage, porte droite', 
+      city: 'Marseille', postal_code: '13001', country: 'France'
     },
     order_items: [
       {
@@ -206,14 +216,16 @@ export const demoOrders: DemoOrder[] = [
     payment_method: 'paypal',
     total_amount: 159.90,
     created_at: iso(d2),
-    profiles: { first_name: 'Sophie', last_name: 'Leroy', email: 'sophie.leroy@example.com' },
+    profiles: { first_name: 'Sophie', last_name: 'Leroy', email: 'sophie.leroy@laposte.net' },
     shipping_address: {
       is_pickup_point: true,
-      address_line_1: 'Point Relais Chronopost', city: 'Toulouse', postal_code: '31000', country: 'France'
+      address_line_1: 'Point Relais Chronopost', address_line_2: '67 Rue de Metz', 
+      city: 'Toulouse', postal_code: '31000', country: 'France'
     },
     billing_address: {
       first_name: 'Sophie', last_name: 'Leroy',
-      address_line_1: '45 Rue de la République', city: 'Toulouse', postal_code: '31000', country: 'France'
+      address_line_1: '45 Rue de la République', address_line_2: 'Résidence Le Capitole', 
+      city: 'Toulouse', postal_code: '31000', country: 'France'
     },
     order_items: [
       {
@@ -233,14 +245,16 @@ export const demoOrders: DemoOrder[] = [
     total_amount: 369.98,
     created_at: iso(d3),
     metadata: { tracking_number: 'FR2632222GHI' },
-    profiles: { first_name: 'Pierre', last_name: 'Dubois', email: 'pierre.dubois@example.com' },
+    profiles: { first_name: 'Pierre', last_name: 'Dubois', email: 'pierre.dubois@wanadoo.fr' },
     shipping_address: {
       first_name: 'Pierre', last_name: 'Dubois',
-      address_line_1: '12 Avenue des Champs', city: 'Strasbourg', postal_code: '67000', country: 'France'
+      address_line_1: '12 Avenue des Champs-Élysées', address_line_2: 'Immeuble Le Strasbourg', 
+      city: 'Strasbourg', postal_code: '67000', country: 'France'
     },
     billing_address: {
       first_name: 'Pierre', last_name: 'Dubois',
-      address_line_1: '12 Avenue des Champs', city: 'Strasbourg', postal_code: '67000', country: 'France'
+      address_line_1: '12 Avenue des Champs-Élysées', address_line_2: 'Immeuble Le Strasbourg', 
+      city: 'Strasbourg', postal_code: '67000', country: 'France'
     },
     order_items: [
       {
@@ -259,14 +273,16 @@ export const demoOrders: DemoOrder[] = [
     payment_method: 'bank_transfer',
     total_amount: 139.95,
     created_at: iso(d4),
-    profiles: { first_name: 'Emma', last_name: 'Rousseau', email: 'emma.rousseau@example.com' },
+    profiles: { first_name: 'Emma', last_name: 'Rousseau', email: 'emma.rousseau@sfr.fr' },
     shipping_address: {
       first_name: 'Emma', last_name: 'Rousseau',
-      address_line_1: '88 Rue Saint-Antoine', city: 'Nantes', postal_code: '44000', country: 'France'
+      address_line_1: '88 Rue Saint-Antoine', address_line_2: 'Maison individuelle', 
+      city: 'Nantes', postal_code: '44000', country: 'France'
     },
     billing_address: {
       first_name: 'Emma', last_name: 'Rousseau',
-      address_line_1: '88 Rue Saint-Antoine', city: 'Nantes', postal_code: '44000', country: 'France'
+      address_line_1: '88 Rue Saint-Antoine', address_line_2: 'Maison individuelle', 
+      city: 'Nantes', postal_code: '44000', country: 'France'
     },
     order_items: [
       {
@@ -290,7 +306,7 @@ export const demoClientInvoices: DemoInvoice[] = [
     payment_method: 'Carte bancaire',
     created_at: iso(d1),
     paid_date: iso(d1),
-    metadata: { client_name: 'Marie Durand', client_email: 'marie.durand@example.com', order_number: 'EDN-2025-261-1234' }
+    metadata: { client_name: 'Marie Durand', client_email: 'marie.durand@gmail.com', order_number: 'EDN-2025-261-1234' }
   },
   {
     id: 'demo-inv-c2',
@@ -302,7 +318,7 @@ export const demoClientInvoices: DemoInvoice[] = [
     payment_method: 'PayPal',
     created_at: iso(d2),
     paid_date: iso(d2),
-    metadata: { client_name: 'Thomas Bernard', client_email: 'thomas.bernard@example.com', order_number: 'EDN-2025-244-5678' }
+    metadata: { client_name: 'Thomas Bernard', client_email: 'thomas.bernard@hotmail.fr', order_number: 'EDN-2025-244-5678' }
   },
   {
     id: 'demo-inv-c3',
@@ -314,7 +330,7 @@ export const demoClientInvoices: DemoInvoice[] = [
     payment_method: 'Virement bancaire',
     created_at: iso(d4),
     paid_date: iso(d4),
-    metadata: { client_name: 'Nadia Martin', client_email: 'nadia.martin@example.com', order_number: 'EDN-2025-221-3456' }
+    metadata: { client_name: 'Nadia Martin', client_email: 'nadia.martin@yahoo.fr', order_number: 'EDN-2025-221-3456' }
   }
 ];
 
