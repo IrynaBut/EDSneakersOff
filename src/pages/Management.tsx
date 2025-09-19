@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminPanel } from "@/components/AdminPanel";
 import { VendorPanel } from "@/components/VendorPanel";
+import { UserManagement } from '@/components/UserManagement';
 import { 
   Settings, 
   Users, 
@@ -142,7 +143,7 @@ const Management = () => {
         <div className="space-y-6">
           {profile.role === 'admin' ? (
             <Tabs defaultValue="admin" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="admin" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
                   Administration
@@ -155,10 +156,6 @@ const Management = () => {
                   <Users className="w-4 h-4" />
                   Utilisateurs
                 </TabsTrigger>
-                <TabsTrigger value="analytics" className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Statistiques
-                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="admin">
@@ -170,30 +167,9 @@ const Management = () => {
               </TabsContent>
 
               <TabsContent value="users">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gestion des Utilisateurs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Fonctionnalité de gestion des utilisateurs en développement...
-                    </p>
-                  </CardContent>
-                </Card>
+                <UserManagement />
               </TabsContent>
 
-              <TabsContent value="analytics">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Statistiques et Analytics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Tableau de bord analytics en développement...
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           ) : (
             <Tabs defaultValue="vendor" className="space-y-4">

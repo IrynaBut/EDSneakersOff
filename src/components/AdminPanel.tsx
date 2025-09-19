@@ -316,22 +316,11 @@ const [statusFilter, setStatusFilter] = useState('');
             <p className="text-xs text-muted-foreground">Revenus totaux cumulés</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CA sur la date sélectionnée</CardTitle>
-            <BarChart3 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{filteredRevenue.toFixed(2)}€</div>
-            <p className="text-xs text-muted-foreground">Basé sur les commandes payées du {dateFilter ? new Date(dateFilter).toLocaleDateString('fr-FR') : '—'}</p>
-          </CardContent>
-        </Card>
       </div>
 
       <Tabs defaultValue="products" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="products">Produits</TabsTrigger>
-          <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="factures">Factures</TabsTrigger>
         </TabsList>
@@ -429,10 +418,46 @@ const [statusFilter, setStatusFilter] = useState('');
         <TabsContent value="orders">
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des Commandes - Sneakers & Baskets</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Vue administrative des commandes de sneakers avec filtres avancés
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Gestion des Commandes - Sneakers & Baskets</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Vue administrative des commandes de sneakers avec filtres avancés
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-64"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="px-3 py-2 border rounded text-sm"
+                    >
+                      <option value="">Tous les statuts</option>
+                      <option value="pending">En attente</option>
+                      <option value="shipped">Expédiée</option>
+                      <option value="delivered">Livrée</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
