@@ -13,7 +13,8 @@ import {
   Trash2,
   Plus,
   Search,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,6 +71,7 @@ export const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
 const [searchTerm, setSearchTerm] = useState('');
 const [dateFilter, setDateFilter] = useState('');
+const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -213,7 +215,8 @@ const [dateFilter, setDateFilter] = useState('');
 
   const filteredOrders = orders.filter(o => 
     o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (!dateFilter || new Date(o.created_at).toISOString().split('T')[0] === dateFilter)
+    (!dateFilter || new Date(o.created_at).toISOString().split('T')[0] === dateFilter) &&
+    (!statusFilter || o.status === statusFilter)
   );
 
   const isPaidStatus = (s: string) => ['shipped','delivered','completed'].includes(s);
@@ -246,6 +249,18 @@ const [dateFilter, setDateFilter] = useState('');
               onChange={(e) => setDateFilter(e.target.value)}
               className="w-40"
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border rounded text-sm"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="shipped">Expédiée</option>
+              <option value="delivered">Livrée</option>
+            </select>
           </div>
         </div>
       </div>
@@ -432,14 +447,26 @@ const [dateFilter, setDateFilter] = useState('');
                       <p className="text-sm text-muted-foreground">
                         {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
                       </p>
-                      {/* Display order items (sneakers) */}
-                      <div className="mt-2">
-                        {order.order_items?.map((item, idx) => (
-                          <div key={idx} className="text-sm text-muted-foreground">
-                            • {item.products?.name} - Taille {item.product_variants?.size} ({item.product_variants?.color}) - Qté: {item.quantity}
-                          </div>
-                        ))}
-                      </div>
+                       {/* Display order items (sneakers) */}
+                       <div className="mt-2">
+                         {order.order_items?.map((item, idx) => (
+                           <div key={idx} className="text-sm text-muted-foreground">
+                             • {item.products?.name} - Taille {item.product_variants?.size} ({item.product_variants?.color}) - Qté: {item.quantity}
+                           </div>
+                         ))}
+                       </div>
+                       {/* Track Package button for shipped orders */}
+                       {(order.status === 'shipped' || order.status === 'Expédiée') && (
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=TRACK${order.order_number}`, '_blank')}
+                           className="mt-2"
+                         >
+                           <ExternalLink className="h-4 w-4 mr-1"/>
+                           Suivi Colis
+                         </Button>
+                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <select

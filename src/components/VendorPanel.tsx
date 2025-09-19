@@ -93,6 +93,7 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     loadVendorData();
@@ -183,7 +184,8 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
       (o.profiles?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
     const matchesDate = !dateFilter || 
       new Date(o.created_at).toISOString().split('T')[0] === dateFilter;
-    return matchesSearch && matchesDate;
+    const matchesStatus = !statusFilter || o.status === statusFilter;
+    return matchesSearch && matchesDate && matchesStatus;
   });
 
   const isPaidStatus = (s: string) => ['shipped', 'delivered', 'completed'].includes(s);
@@ -253,6 +255,18 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
             className="w-40"
           />
         </div>
+        <div className="flex items-center space-x-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border rounded text-sm"
+          >
+            <option value="">Tous les statuts</option>
+            <option value="pending">En attente</option>
+            <option value="shipped">Expédiée</option>
+            <option value="delivered">Livrée</option>
+          </select>
+        </div>
         </div>
 
         <Card>
@@ -298,23 +312,15 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
                       <div className="font-semibold">Articles</div>
                       <div className="space-y-2">
                         {order.order_items.map((it, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-2 border rounded">
-                            <div className="flex items-center gap-3">
-                              {it.products?.main_image_url && (
-                                <img
-                                  src={it.products.main_image_url}
-                                  alt={`Image du produit ${it.products?.name || ''}`}
-                                  loading="lazy"
-                                  className="h-10 w-10 rounded object-cover"
-                                />
-                              )}
-                              <div>
-                                <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
-                                </div>
-                              </div>
-                            </div>
+                             <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                               <div className="flex items-center gap-3">
+                                 <div>
+                                   <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
+                                   <div className="text-xs text-muted-foreground">
+                                     {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
+                                   </div>
+                                 </div>
+                               </div>
                             <div className="text-right text-sm">
                               <div>Qté: {it.quantity}</div>
                               <div>{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
@@ -325,17 +331,23 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
-                    {order.payment_status && (
-                      <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
-                    )}
-                    {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
-                      <a className="inline-flex items-center text-primary hover:underline text-sm" href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`} target="_blank" rel="noreferrer">
-                        <ExternalLink className="h-3 w-3 mr-1"/> Suivi: {order.metadata.tracking_number}
-                      </a>
-                    )}
-                  </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                      {order.payment_status && (
+                        <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
+                      )}
+                      {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
+                          className="ml-auto"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1"/>
+                          Suivi Colis
+                        </Button>
+                      )}
+                    </div>
 
                   <div className="text-xs text-muted-foreground">Points de fidélité gagnés: {Math.floor(order.total_amount)} pts</div>
                 </div>
@@ -482,9 +494,8 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
       )}
 
       <Tabs defaultValue={initialTab} className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full">
+        <TabsList className="grid grid-cols-2 w-full">
           <TabsTrigger value="stock">Gestion Stock</TabsTrigger>
-          <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="factures">Factures</TabsTrigger>
         </TabsList>
 
@@ -592,6 +603,18 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
           <Card>
             <CardHeader>
               <CardTitle>Suivi des Commandes</CardTitle>
+              <div className="flex items-center space-x-2 mt-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 border rounded text-sm"
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="pending">En attente</option>
+                  <option value="shipped">Expédiée</option>
+                  <option value="delivered">Livrée</option>
+                </select>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -647,14 +670,6 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
                           {order.order_items.map((it, idx) => (
                             <div key={idx} className="flex items-center justify-between p-2 border rounded">
                               <div className="flex items-center gap-3">
-                                {it.products?.main_image_url && (
-                                  <img
-                                    src={it.products.main_image_url}
-                                    alt={`Image du produit ${it.products?.name || ''}`}
-                                    loading="lazy"
-                                    className="h-10 w-10 rounded object-cover"
-                                  />
-                                )}
                                 <div>
                                   <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
                                   <div className="text-xs text-muted-foreground">
@@ -678,9 +693,15 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
                         <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
                       )}
                       {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
-                        <a className="inline-flex items-center text-primary hover:underline text-sm" href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`} target="_blank" rel="noreferrer">
-                          <ExternalLink className="h-3 w-3 mr-1"/> Suivi: {order.metadata.tracking_number}
-                        </a>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
+                          className="ml-auto"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1"/>
+                          Suivi Colis
+                        </Button>
                       )}
                       {(order.status === 'delivered' || order.status === 'completed' || order.status === 'Livrée') && canReturn(order) && (
                         <Button size="sm" variant="outline" className="ml-auto">
