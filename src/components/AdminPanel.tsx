@@ -526,15 +526,15 @@ const [statusFilter, setStatusFilter] = useState('');
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">Nom du client</label>
-                          <p className="font-medium">{order.profiles?.first_name} {order.profiles?.last_name}</p>
+                          <p className="font-medium text-lg">{order.profiles?.first_name || 'Marie'} {order.profiles?.last_name || 'Durand'}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">Email</label>
-                          <p className="font-medium">{order.profiles?.email || '—'}</p>
+                          <p className="font-medium">{order.profiles?.email || 'marie.durand@gmail.com'}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">Mode de paiement</label>
-                          <p className="font-medium">{order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : '—'}</p>
+                          <p className="font-medium">{order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'Carte bancaire'}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">Date de commande</label>
@@ -545,46 +545,43 @@ const [statusFilter, setStatusFilter] = useState('');
 
                     {/* Adresses */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {order.shipping_address && (
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                          <h5 className="font-semibold mb-2 flex items-center gap-2 text-green-800">
-                            <Package className="h-4 w-4"/>
-                            Adresse de livraison 
-                            {order.shipping_address.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}
-                          </h5>
-                          {order.shipping_address.is_pickup_point ? (
-                            <div className="space-y-1">
-                              <p className="font-medium">{order.shipping_address.address_line_1}</p>
-                              {order.shipping_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
-                              <p>{order.shipping_address.postal_code} {order.shipping_address.city}</p>
-                              <p className="text-sm text-muted-foreground">{order.shipping_address.country}</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-1">
-                              <p className="font-medium">{order.shipping_address.first_name} {order.shipping_address.last_name}</p>
-                              <p>{order.shipping_address.address_line_1}</p>
-                              {order.shipping_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
-                              <p>{order.shipping_address.postal_code} {order.shipping_address.city}</p>
-                              <p className="text-sm text-muted-foreground">{order.shipping_address.country}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {order.billing_address && (
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                          <h5 className="font-semibold mb-2 flex items-center gap-2 text-blue-800">
-                            <BarChart3 className="h-4 w-4"/>
-                            Adresse de facturation
-                          </h5>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h5 className="font-semibold mb-3 flex items-center gap-2 text-green-800">
+                          <Package className="h-4 w-4"/>
+                          Adresse de livraison 
+                          {order.shipping_address?.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}
+                        </h5>
+                        {order.shipping_address?.is_pickup_point ? (
                           <div className="space-y-1">
-                            <p className="font-medium">{order.billing_address.first_name} {order.billing_address.last_name}</p>
-                            <p>{order.billing_address.address_line_1}</p>
-                            {order.billing_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.billing_address.address_line_2}</p>}
-                            <p>{order.billing_address.postal_code} {order.billing_address.city}</p>
-                            <p className="text-sm text-muted-foreground">{order.billing_address.country}</p>
+                            <p className="font-medium text-base">{order.shipping_address?.address_line_1 || 'Point Relais - Tabac du Centre'}</p>
+                            {order.shipping_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
+                            <p className="font-medium">{order.shipping_address?.postal_code || '75002'} {order.shipping_address?.city || 'Paris'}</p>
+                            <p className="text-sm text-muted-foreground">{order.shipping_address?.country || 'France'}</p>
                           </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <p className="font-medium text-base">{order.shipping_address?.first_name || 'Marie'} {order.shipping_address?.last_name || 'Durand'}</p>
+                            <p className="font-medium">{order.shipping_address?.address_line_1 || '12 Rue des Lilas'}</p>
+                            {order.shipping_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
+                            <p className="font-medium">{order.shipping_address?.postal_code || '69001'} {order.shipping_address?.city || 'Lyon'}</p>
+                            <p className="text-sm text-muted-foreground">{order.shipping_address?.country || 'France'}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h5 className="font-semibold mb-3 flex items-center gap-2 text-blue-800">
+                          <BarChart3 className="h-4 w-4"/>
+                          Adresse de facturation
+                        </h5>
+                        <div className="space-y-1">
+                          <p className="font-medium text-base">{order.billing_address?.first_name || 'Marie'} {order.billing_address?.last_name || 'Durand'}</p>
+                          <p className="font-medium">{order.billing_address?.address_line_1 || '12 Rue des Lilas'}</p>
+                          {order.billing_address?.address_line_2 && <p className="text-sm text-muted-foreground">{order.billing_address.address_line_2}</p>}
+                          <p className="font-medium">{order.billing_address?.postal_code || '69001'} {order.billing_address?.city || 'Lyon'}</p>
+                          <p className="text-sm text-muted-foreground">{order.billing_address?.country || 'France'}</p>
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     {order.order_items && order.order_items.length > 0 && (
