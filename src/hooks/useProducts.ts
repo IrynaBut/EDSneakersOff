@@ -11,6 +11,7 @@ export interface Product {
   rating: number;
   isNew: boolean;
   isOnSale: boolean;
+  isPromotion?: boolean;
   sizes: string[];
   brand?: string;
   gender: string;
@@ -55,9 +56,9 @@ export const useProducts = (category?: string, featured?: boolean) => {
 
         // Special handling for promotions and new arrivals
         if (category === 'promotions') {
-          query = query.order('created_at', { ascending: true }).limit(20);
+          query = query.eq('is_promotion', true);
         } else if (category === 'nouveautes') {
-          query = query.order('created_at', { ascending: false }).limit(15);
+          query = query.eq('is_new_arrival', true);
         } else {
           query = query.order('created_at', { ascending: false });
           
@@ -88,22 +89,14 @@ export const useProducts = (category?: string, featured?: boolean) => {
             return bucketUrl;
           };
 
-          // Apply promotion pricing for first 20 products with varying discounts
+          // Apply promotion pricing and determine status from database fields
           let finalPrice = product.price;
           let originalPrice = product.original_price;
-          let isOnSale = !!product.original_price && product.original_price > product.price;
+          let isOnSale = product.is_promotion || (!!product.original_price && product.original_price > product.price);
           
-          if (category === 'promotions') {
-            // Apply varying discounts: 10%, 15%, or 20% based on product index
-            const discountRate = index % 3 === 0 ? 0.8 : index % 3 === 1 ? 0.85 : 0.9; // 20%, 15%, 10%
-            originalPrice = product.price;
-            finalPrice = Math.round(product.price * discountRate);
-            isOnSale = true;
-          }
-
-          // Determine if product is new (last 15 products by creation date)
-          const isNewProduct = category === 'nouveautes' || 
-            new Date(product.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000);
+          // Use database fields for promotion and new arrival status
+          const isNewProduct = product.is_new_arrival;
+          const isPromotion = product.is_promotion;
 
           return {
             id: product.id,
@@ -119,6 +112,7 @@ export const useProducts = (category?: string, featured?: boolean) => {
             rating: [4, 4.5, 5, 4.5, 4, 5, 4.5, 4, 5][index % 9] || 4.5, // Realistic ratings
             isNew: isNewProduct,
             isOnSale: isOnSale,
+            isPromotion: isPromotion,
             sizes: product.product_variants?.map(v => v.size).sort() || [],
             brand: product.brand,
             gender: product.gender,

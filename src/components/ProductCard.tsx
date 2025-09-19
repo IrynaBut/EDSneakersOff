@@ -95,13 +95,13 @@ const ProductCard = ({
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {isNew && (
-              <Badge variant="secondary" className="bg-accent text-accent-foreground">
-                Nouveau
+              <Badge variant="secondary" className="bg-green-500 text-white font-medium">
+                Nouveauté
               </Badge>
             )}
             {isOnSale && discount > 0 && (
-              <Badge variant="destructive">
-                -{discount}%
+              <Badge variant="destructive" className="bg-red-500 text-white font-medium">
+                Promotion -{discount}%
               </Badge>
             )}
           </div>
