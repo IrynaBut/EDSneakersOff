@@ -213,16 +213,7 @@ const Management = () => {
               </TabsContent>
 
               <TabsContent value="orders">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Suivi des Commandes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Interface de suivi des commandes détaillée en développement...
-                    </p>
-                  </CardContent>
-                </Card>
+                <VendorPanel viewOnlyOrders initialTab="orders" />
               </TabsContent>
             </Tabs>
           )}

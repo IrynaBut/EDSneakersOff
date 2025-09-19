@@ -87,7 +87,7 @@ interface Order {
   }[];
 }
 
-export const VendorPanel = () => {
+export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { initialTab?: 'stock' | 'orders' | 'factures'; viewOnlyOrders?: boolean }) => {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -113,17 +113,7 @@ export const VendorPanel = () => {
       if (variantsError) throw variantsError;
       setVariants(variantsData || []);
 
-      // Charger toutes les commandes avec les profils clients
-      const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles (first_name, last_name, email)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (ordersError) throw ordersError;
-      // Pour les tests: afficher des commandes fictives dans l'onglet Commandes
+      // Charger exclusivement des commandes fictives pour l'onglet Commandes
       setOrders(demoOrders as any);
 
     } catch (error: any) {
@@ -222,6 +212,128 @@ export const VendorPanel = () => {
   };
   if (loading) {
     return <div className="flex justify-center items-center h-64">Chargement...</div>;
+  }
+
+  if (viewOnlyOrders) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Commandes</h2>
+            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Aujourd'hui: {new Date().toLocaleDateString('fr-FR', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Suivi des Commandes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredOrders.map((order) => (
+                <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                      <h4 className="font-medium">#{order.order_number}</h4>
+                      <p className="text-sm text-muted-foreground">Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})</p>
+                      <p className="text-sm text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{statusFr(order.status)}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {order.shipping_address && (
+                      <div className="bg-secondary/20 p-3 rounded">
+                        <div className="font-semibold flex items-center gap-2"><MapPin className="h-4 w-4"/>Adresse de livraison {order.shipping_address.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}</div>
+                        {order.shipping_address.is_pickup_point ? (
+                          <p className="text-sm mt-1">{order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                        ) : (
+                          <p className="text-sm mt-1">{order.shipping_address.first_name} {order.shipping_address.last_name}, {order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                        )}
+                      </div>
+                    )}
+                    {order.billing_address && (
+                      <div className="bg-secondary/20 p-3 rounded">
+                        <div className="font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4"/>Adresse de facturation</div>
+                        <p className="text-sm mt-1">{order.billing_address.first_name} {order.billing_address.last_name}, {order.billing_address.address_line_1}, {order.billing_address.postal_code} {order.billing_address.city}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {order.order_items && order.order_items.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <div className="font-semibold">Articles</div>
+                      <div className="space-y-2">
+                        {order.order_items.map((it, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                            <div className="flex items-center gap-3">
+                              {it.products?.main_image_url && (
+                                <img
+                                  src={it.products.main_image_url}
+                                  alt={`Image du produit ${it.products?.name || ''}`}
+                                  loading="lazy"
+                                  className="h-10 w-10 rounded object-cover"
+                                />
+                              )}
+                              <div>
+                                <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right text-sm">
+                              <div>Qté: {it.quantity}</div>
+                              <div>{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                    {order.payment_status && (
+                      <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
+                    )}
+                    {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
+                      <a className="inline-flex items-center text-primary hover:underline text-sm" href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-3 w-3 mr-1"/> Suivi: {order.metadata.tracking_number}
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">Points de fidélité gagnés: {Math.floor(order.total_amount)} pts</div>
+                </div>
+              ))}
+              {filteredOrders.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">Aucune commande trouvée</div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -355,7 +467,7 @@ export const VendorPanel = () => {
         </Card>
       )}
 
-      <Tabs defaultValue="stock" className="space-y-6">
+      <Tabs defaultValue={initialTab} className="space-y-6">
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="stock">Gestion Stock</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
