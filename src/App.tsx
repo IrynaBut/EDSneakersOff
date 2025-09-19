@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { CartProvider } from "./hooks/useCart";
 import { FavoritesProvider } from "./hooks/useFavorites";
@@ -75,6 +76,19 @@ const AppContent = () => {
         </Routes>
       </main>
       <Footer />
+      
+      {/* Floating Support Button - smaller size */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          size="sm"
+          className="w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg"
+          asChild
+        >
+          <Link to="/faq">
+            ?
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 };

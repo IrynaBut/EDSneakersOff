@@ -163,43 +163,38 @@ const Home = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section 
-        className="relative overflow-hidden text-primary-foreground py-16 lg:py-20"
+        className="relative overflow-hidden text-primary-foreground py-12 lg:py-16"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1678266622924-c7c38ddc25e1?q=80&w=1748&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1678266622924-c7c38ddc25e1?q=80&w=1748&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backdropFilter: 'blur(0.5px)'
+          backgroundRepeat: 'no-repeat'
         }}
       >
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white mb-4">
+              Votre Style,
+              <br />
+              Nos Baskets
+            </h1>
             
-            {/* Text overlay for better contrast */}
-            <div className="bg-black/40 rounded-lg p-8 backdrop-blur-sm">
-              <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white mb-6">
-                Votre Style,
-                <br />
-                Nos Baskets
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-white max-w-2xl mx-auto leading-relaxed">
-                Découvrez notre collection exclusive de baskets premium pour toute la famille. 
-                Qualité, style et confort garantis.
-              </p>
-            </div>
+            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+              Découvrez notre collection exclusive de baskets premium pour toute la famille. 
+              Qualité, style et confort garantis.
+            </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong bg-secondary text-secondary-foreground hover:bg-secondary/80" asChild>
+              <Button size="lg" variant="secondary" className="text-base px-6 py-4 bg-secondary text-secondary-foreground hover:bg-secondary/80" asChild>
                 <Link to="/nouveautes">
                   Voir les Nouveautés
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-strong bg-secondary text-secondary-foreground hover:bg-secondary/80" asChild>
+              <Button size="lg" variant="secondary" className="text-base px-6 py-4 bg-secondary text-secondary-foreground hover:bg-secondary/80" asChild>
                 <Link to="/promotions">
-                  Voir les Promotions
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Découvrir les Promos
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -306,6 +301,19 @@ const Home = () => {
       </section>
 
       {/* Newsletter section removed as requested */}
+      
+      {/* Floating Support Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          size="sm"
+          className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg"
+          asChild
+        >
+          <Link to="/faq">
+            ?
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 };
