@@ -167,23 +167,23 @@ const Orders = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Suivi des Commandes</h1>
           <p className="text-muted-foreground">Consultez le détail complet de vos commandes avec toutes les informations de livraison, facturation et suivi</p>
-          {loyaltyPoints && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Star className="w-5 h-5 text-primary" />
-                    Vos Points de Fidélité
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Points disponibles pour vos prochains achats</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{loyaltyPoints.points}</div>
-                  <div className="text-sm text-muted-foreground">Total gagné: {loyaltyPoints.total_earned}</div>
-                </div>
+          <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Star className="w-5 h-5 text-primary" />
+                  Vos Points de Fidélité
+                </h3>
+                <p className="text-sm text-muted-foreground">Points disponibles pour vos prochains achats</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-primary">{
+                  orders.reduce((sum, o) => (o.status === 'delivered' || o.status === 'completed') ? sum + Math.floor(o.total_amount) : sum, 0)
+                }</div>
+                <div className="text-sm text-muted-foreground">Total gagné (commandes livrées)</div>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {orders.length === 0 ? (

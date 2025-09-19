@@ -292,15 +292,31 @@ const ProductDetail = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Description du produit</h3>
                   <div className="prose prose-sm max-w-none">
-                    <p className="mb-4">Vans Old Skool – iconic sneaker for women.</p>
-                    <ul className="space-y-2">
-                      <li>• Premium materials selected for durability</li>
-                      <li>• Ultra-comfortable sole for extended wear</li>
-                      <li>• Modern and trendy design</li>
-                      <li>• Advanced cushioning technology</li>
-                      <li>• Available in multiple sizes</li>
-                      <li>• Perfect for both sports and everyday use</li>
-                    </ul>
+                    {product.name.toLowerCase().includes('vans') && product.name.toLowerCase().includes('old skool') ? (
+                      <>
+                        <p className="mb-4">Vans Old Skool – iconic sneaker for women.</p>
+                        <ul className="space-y-2">
+                          <li>• Premium materials selected for durability</li>
+                          <li>• Ultra-comfortable sole for extended wear</li>
+                          <li>• Modern and trendy design</li>
+                          <li>• Advanced cushioning technology</li>
+                          <li>• Available in multiple sizes</li>
+                          <li>• Perfect for both sports and everyday use</li>
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mb-4">{product.description || "Sneaker de haute qualité alliant style et confort. Parfaite pour un usage quotidien ou sportif."}</p>
+                        <ul className="space-y-2">
+                          <li>• Matériaux premium sélectionnés pour leur durabilité</li>
+                          <li>• Semelle ultra-confortable pour un port prolongé</li>
+                          <li>• Design moderne et tendance</li>
+                          <li>• Technologie avancée d'amorti</li>
+                          <li>• Disponible en plusieurs tailles</li>
+                          <li>• Parfait pour le sport et le quotidien</li>
+                        </ul>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
