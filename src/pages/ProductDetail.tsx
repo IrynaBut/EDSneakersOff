@@ -292,14 +292,14 @@ const ProductDetail = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Description du produit</h3>
                   <div className="prose prose-sm max-w-none">
-                    <p className="mb-4">{product.description || "Sneaker de haute qualité alliant style et confort. Parfaite pour un usage quotidien ou sportif."}</p>
+                    <p className="mb-4">Vans Old Skool – iconic sneaker for women.</p>
                     <ul className="space-y-2">
-                      <li>• Matériaux premium sélectionnés pour leur durabilité</li>
-                      <li>• Semelle ultra-confortable pour un port prolongé</li>
-                      <li>• Design moderne et tendance</li>
-                      <li>• Technologie avancée d'amorti</li>
-                      <li>• Disponible en plusieurs tailles et couleurs</li>
-                      <li>• Parfait pour le sport et le quotidien</li>
+                      <li>• Premium materials selected for durability</li>
+                      <li>• Ultra-comfortable sole for extended wear</li>
+                      <li>• Modern and trendy design</li>
+                      <li>• Advanced cushioning technology</li>
+                      <li>• Available in multiple sizes</li>
+                      <li>• Perfect for both sports and everyday use</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -367,32 +367,132 @@ const ProductDetail = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Avis clients</h3>
                   <div className="space-y-4">
-                    {/* Sample reviews */}
-                    <div className="border-b border-border pb-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                          ))}
+                    {/* Product-specific reviews based on product name */}
+                    {product.name.toLowerCase().includes('vans') && product.name.toLowerCase().includes('old skool') ? (
+                      <>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                            </div>
+                            <span className="font-medium">Emma D.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 1 semaine</span>
+                          </div>
+                          <p className="text-sm">Les Vans Old Skool sont parfaites ! Super confortables pour marcher toute la journée, le style iconique se marie avec tout. Qualité au top comme toujours avec Vans.</p>
                         </div>
-                        <span className="font-medium">Marie L.</span>
-                        <span className="text-sm text-muted-foreground">Il y a 2 semaines</span>
-                      </div>
-                      <p className="text-sm">Excellent produit, très confortable et de qualité. Je recommande !</p>
-                    </div>
-                    <div className="border-b border-border pb-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="flex">
-                          {[...Array(4)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                          ))}
-                          <Star className="w-4 h-4 text-muted-foreground" />
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(4)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                              <Star className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <span className="font-medium">Léa M.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 3 semaines</span>
+                          </div>
+                          <p className="text-sm">Très satisfaite de mon achat ! La semelle est vraiment confortable et les matériaux semblent durables. Le design classique ne se démode jamais.</p>
                         </div>
-                        <span className="font-medium">Pierre M.</span>
-                        <span className="text-sm text-muted-foreground">Il y a 1 mois</span>
-                      </div>
-                      <p className="text-sm">Très beau design, taille correctement. Livraison rapide.</p>
-                    </div>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                            </div>
+                            <span className="font-medium">Sophie R.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 1 mois</span>
+                          </div>
+                          <p className="text-sm">Je porte des Vans depuis des années et ces Old Skool sont un incontournable ! Parfaites pour le quotidien et le sport. Je recommande vivement.</p>
+                        </div>
+                      </>
+                    ) : product.name.toLowerCase().includes('nike') ? (
+                      <>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                            </div>
+                            <span className="font-medium">Julie T.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 5 jours</span>
+                          </div>
+                          <p className="text-sm">Excellente basket Nike ! L'amorti est parfait pour mes séances de sport. La qualité de fabrication est irréprochable.</p>
+                        </div>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(4)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                              <Star className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <span className="font-medium">Marine K.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 2 semaines</span>
+                          </div>
+                          <p className="text-sm">Très bonne chaussure pour le running. Le maintien du pied est excellent et le design est moderne. Je recommande !</p>
+                        </div>
+                      </>
+                    ) : product.name.toLowerCase().includes('adidas') ? (
+                      <>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                            </div>
+                            <span className="font-medium">Clara B.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 4 jours</span>
+                          </div>
+                          <p className="text-sm">Super qualité Adidas ! Très confortable, parfaite pour le sport et la ville. Les 3 bandes iconiques donnent du style à toutes mes tenues.</p>
+                        </div>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(4)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                              <Star className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <span className="font-medium">Anaïs L.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 10 jours</span>
+                          </div>
+                          <p className="text-sm">Très satisfaite de ces Adidas. La taille correspond bien et la qualité est au rendez-vous. Parfaites pour mes entraînements.</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                            </div>
+                            <span className="font-medium">Marie L.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 2 semaines</span>
+                          </div>
+                          <p className="text-sm">Excellent produit, très confortable et de qualité. Je recommande vivement pour l'usage quotidien !</p>
+                        </div>
+                        <div className="border-b border-border pb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {[...Array(4)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                              ))}
+                              <Star className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <span className="font-medium">Pierre M.</span>
+                            <span className="text-sm text-muted-foreground">Il y a 1 mois</span>
+                          </div>
+                          <p className="text-sm">Très beau design et finitions soignées. La taille correspond parfaitement. Livraison rapide et soignée.</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                   <div className="mt-4 text-center">
                     <Button variant="outline" size="sm">

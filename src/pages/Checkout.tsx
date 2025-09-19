@@ -127,9 +127,19 @@ const Checkout = () => {
     try {
       // Handle PayPal redirection
       if (formData.paymentMethod === 'paypal') {
-        // Redirect to PayPal
-        const paypalUrl = `https://www.paypal.com/checkoutnow?token=${Date.now()}&amount=${totalAmount}&currency=EUR`;
-        window.location.href = paypalUrl;
+        // Redirect to official PayPal website
+        const paypalParams = new URLSearchParams({
+          cmd: '_xclick',
+          business: 'merchant@example.com', // This should be replaced with actual merchant email
+          amount: totalAmount.toString(),
+          currency_code: 'EUR',
+          return: `${window.location.origin}/orders`,
+          cancel_return: `${window.location.origin}/checkout`,
+          item_name: `Commande EDN-${Date.now()}`,
+          invoice: `EDN-${Date.now()}`
+        });
+        
+        window.location.href = `https://www.paypal.com/cgi-bin/webscr?${paypalParams.toString()}`;
         return;
       }
 
