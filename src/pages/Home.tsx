@@ -305,8 +305,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Newsletter CTA */}
-      <NewsletterSection />
+      {/* Newsletter section removed as requested */}
     </div>
   );
 };

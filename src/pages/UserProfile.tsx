@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,11 +108,37 @@ const UserProfile = () => {
 
       setProfile(data || payload);
 
-      // Handle newsletter subscription changes
+      // Handle newsletter subscription changes with confirmation emails
       if (!wasSubscribed && isNowSubscribed) {
-        setNewsletterModal({ open: true, type: 'subscribe' });
+        try {
+          await supabase.functions.invoke('send-newsletter-confirmation', {
+            body: { 
+              email: payload.email,
+              type: 'subscribe'
+            }
+          });
+          toast({
+            title: "Inscription confirmée",
+            description: `Un email de confirmation a été envoyé à ${payload.email}`,
+          });
+        } catch (emailError) {
+          console.error('Failed to send subscription email:', emailError);
+        }
       } else if (wasSubscribed && !isNowSubscribed) {
-        setNewsletterModal({ open: true, type: 'unsubscribe' });
+        try {
+          await supabase.functions.invoke('send-newsletter-confirmation', {
+            body: { 
+              email: payload.email,
+              type: 'unsubscribe'
+            }
+          });
+          toast({
+            title: "Désinscription confirmée",
+            description: `Un email de confirmation a été envoyé à ${payload.email}`,
+          });
+        } catch (emailError) {
+          console.error('Failed to send unsubscription email:', emailError);
+        }
       }
 
       toast({
