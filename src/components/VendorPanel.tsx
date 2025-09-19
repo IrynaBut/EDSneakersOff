@@ -76,6 +76,15 @@ interface Order {
     postal_code: string;
     country?: string;
   };
+  order_items?: {
+    product_id: string;
+    variant_id: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    products?: { name: string; main_image_url?: string };
+    product_variants?: { size: string; color?: string };
+  }[];
 }
 
 export const VendorPanel = () => {
@@ -114,7 +123,8 @@ export const VendorPanel = () => {
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(((ordersData as any) && (ordersData as any).length ? (ordersData as any) : (demoOrders as any)) || []);
+      // Pour les tests: afficher des commandes fictives dans l'onglet Commandes
+      setOrders(demoOrders as any);
 
     } catch (error: any) {
       console.error('Error loading vendor data:', error);
