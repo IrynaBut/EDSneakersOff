@@ -246,24 +246,24 @@ const Footer = () => {
             >
               Mentions Légales
             </Link>
-            <button 
-              onClick={() => openSupportModal('cgv')}
+            <Link 
+              to="/cgv"
               className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
               CGV
-            </button>
-            <button 
-              onClick={() => openSupportModal('privacy')}
+            </Link>
+            <Link 
+              to="/politique-confidentialite"
               className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
               Politique de Confidentialité
-            </button>
-            <button 
-              onClick={() => openSupportModal('cookies')}
+            </Link>
+            <Link 
+              to="/politique-cookies"
               className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
             >
               Cookies
-            </button>
+            </Link>
           </div>
         </div>
       </div>

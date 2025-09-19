@@ -26,6 +26,9 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import CookieConsent from "./components/CookieConsent";
 import FloatingButton from "./components/FloatingButton";
 import MentionsLegales from "./pages/MentionsLegales";
+import CGV from "./pages/CGV";
+import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
+import PolitiqueCookies from "./pages/PolitiqueCookies";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +78,9 @@ const AppContent = () => {
           } />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgv" element={<CGV />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+          <Route path="/politique-cookies" element={<PolitiqueCookies />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
