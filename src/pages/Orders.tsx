@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TrackingModal } from "@/components/TrackingModal";
-import { ArrowLeft, Package, Calendar, CreditCard, Truck, MapPin, RotateCcw, Star, ExternalLink } from "lucide-react";
+import { ArrowLeft, Package, Calendar, CreditCard, Truck, MapPin, RotateCcw, ExternalLink } from "lucide-react";
 
 interface Order {
   id: string;
@@ -29,7 +29,6 @@ const Orders = () => {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loyaltyPoints, setLoyaltyPoints] = useState<any>(null);
   const [trackingModal, setTrackingModal] = useState<{ open: boolean; orderNumber: string; trackingNumber: string } | null>(null);
 
   useEffect(() => {
@@ -40,32 +39,21 @@ const Orders = () => {
 
     const fetchOrders = async () => {
       try {
-        const [ordersResult, loyaltyResult] = await Promise.all([
-          supabase
-            .from('orders')
-            .select(`
+        const ordersResult = await supabase
+          .from('orders')
+          .select(`
+            *,
+            order_items (
               *,
-              order_items (
-                *,
-                products (name, main_image_url),
-                product_variants (size, color)
-              )
-            `)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false }),
-          supabase
-            .from('loyalty_points')
-            .select('*')
-            .eq('user_id', user.id)
-            .single()
-        ]);
+              products (name, main_image_url),
+              product_variants (size, color)
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
         if (ordersResult.error) throw ordersResult.error;
         setOrders(ordersResult.data || []);
-        
-        if (!loyaltyResult.error) {
-          setLoyaltyPoints(loyaltyResult.data);
-        }
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
@@ -112,10 +100,6 @@ const Orders = () => {
       google_pay: 'Google Pay'
     };
     return methods[method as keyof typeof methods] || method;
-  };
-
-  const calculateLoyaltyPoints = (amount: number) => {
-    return Math.floor(amount); // 1 point per euro
   };
 
   const canReturn = (order: any) => {
@@ -170,23 +154,6 @@ const Orders = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Suivi des Commandes</h1>
           <p className="text-muted-foreground">Consultez le détail complet de vos commandes avec toutes les informations de livraison, facturation et suivi</p>
-          <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Star className="w-5 h-5 text-primary" />
-                  Vos Points de Fidélité
-                </h3>
-                <p className="text-sm text-muted-foreground">Points disponibles pour vos prochains achats</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">{
-                  orders.reduce((sum, o) => (o.status === 'delivered' || o.status === 'completed') ? sum + Math.floor(o.total_amount) : sum, 0)
-                }</div>
-                <div className="text-sm text-muted-foreground">Total gagné (commandes livrées)</div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {orders.length === 0 ? (
@@ -344,31 +311,14 @@ const Orders = () => {
 
                     <Separator className="my-6" />
 
-                    {/* Payment and Loyalty Points */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <CreditCard className="w-4 h-4" />
-                          Méthode de paiement
-                        </h4>
-                        <div className="bg-secondary/20 p-4 rounded-lg">
-                          <p>{getPaymentMethodLabel(order.payment_method || 'card')}</p>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <Star className="w-4 h-4" />
-                          Points de fidélité gagnés
-                        </h4>
-                        <div className="bg-secondary/20 p-4 rounded-lg">
-                          <p className="text-lg font-medium text-primary">
-                            +{calculateLoyaltyPoints(order.total_amount)} points
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            1 point = 1€ d'achat
-                          </p>
-                        </div>
+                    {/* Payment Method */}
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        Méthode de paiement
+                      </h4>
+                      <div className="bg-secondary/20 p-4 rounded-lg">
+                        <p>{getPaymentMethodLabel(order.payment_method || 'card')}</p>
                       </div>
                     </div>
 
@@ -398,23 +348,30 @@ const Orders = () => {
                           <Button 
                             variant="outline" 
                             onClick={() => handleReturnRequest(order.id, order.order_number)}
-                            className="flex items-center gap-2"
                             disabled={!canReturn(order)}
                           >
-                            <RotateCcw className="w-4 h-4" />
-                            {canReturn(order) ? 'Retourner un article' : 'Délai de retour dépassé'}
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Retourner
                           </Button>
                         )}
+                        
                         {order.status === 'shipped' && (
                           <Button 
-                            variant="default" 
+                            variant="default"
                             onClick={() => handleTrackPackage(order.order_number)}
-                            className="flex items-center gap-2"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <Truck className="w-4 h-4 mr-2" />
                             Suivre le colis
                           </Button>
                         )}
+                        
+                        <Button 
+                          variant="outline"
+                          onClick={() => window.open(`/facture/${order.id}`, '_blank')}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Facture
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -423,17 +380,17 @@ const Orders = () => {
             })}
           </div>
         )}
+
+        {/* Tracking Modal */}
+        {trackingModal && (
+          <TrackingModal
+            open={trackingModal.open}
+            onOpenChange={(open) => setTrackingModal(prev => prev ? { ...prev, open } : null)}
+            orderNumber={trackingModal.orderNumber}
+            trackingNumber={trackingModal.trackingNumber}
+          />
+        )}
       </div>
-      
-      {/* Tracking Modal */}
-      {trackingModal && (
-        <TrackingModal
-          open={trackingModal.open}
-          onOpenChange={() => setTrackingModal(null)}
-          orderNumber={trackingModal.orderNumber}
-          trackingNumber={trackingModal.trackingNumber}
-        />
-      )}
     </div>
   );
 };

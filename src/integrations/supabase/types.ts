@@ -164,36 +164,6 @@ export type Database = {
           },
         ]
       }
-      loyalty_points: {
-        Row: {
-          created_at: string
-          id: string
-          points: number
-          total_earned: number
-          total_spent: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          points?: number
-          total_earned?: number
-          total_spent?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          points?: number
-          total_earned?: number
-          total_spent?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       order_items: {
         Row: {
           created_at: string
@@ -466,7 +436,6 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          newsletter_subscribed: boolean | null
           phone: string | null
           postal_code: string | null
           role: string
@@ -484,7 +453,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          newsletter_subscribed?: boolean | null
           phone?: string | null
           postal_code?: string | null
           role?: string
@@ -502,7 +470,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          newsletter_subscribed?: boolean | null
           phone?: string | null
           postal_code?: string | null
           role?: string

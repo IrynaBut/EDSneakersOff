@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useLoyaltyPoints } from "@/hooks/useLoyaltyPoints";
 import { useFavorites } from "@/hooks/useFavorites";
 import { 
   User, 
@@ -21,7 +20,6 @@ import {
   Settings,
   ArrowLeft,
   AlertTriangle,
-  Star,
   MapPin,
   Edit3,
   Save,
@@ -32,10 +30,8 @@ const UserProfile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getUserPoints } = useLoyaltyPoints();
   const { favorites } = useFavorites();
   const [profile, setProfile] = useState<any>(null);
-  const [loyaltyPoints, setLoyaltyPoints] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formKey, setFormKey] = useState(0);
@@ -48,14 +44,11 @@ const UserProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        const [profileResult, loyaltyResult] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle(),
-          getUserPoints()
-        ]);
+        const profileResult = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
         if (profileResult.error && profileResult.error.code !== 'PGRST116') throw profileResult.error;
         
@@ -66,10 +59,6 @@ const UserProfile = () => {
         }
         
         setProfile(profileResult.data || { email: user.email });
-        
-        if (loyaltyResult.points) {
-          setLoyaltyPoints(loyaltyResult.points);
-        }
       } catch (error) {
         console.error('Error fetching profile:', error);
       } finally {
@@ -78,7 +67,7 @@ const UserProfile = () => {
     };
 
     fetchProfile();
-  }, [user, navigate, getUserPoints]);
+  }, [user, navigate]);
 
   const handleUpdateProfile = async (formData: FormData) => {
     try {
@@ -92,8 +81,7 @@ const UserProfile = () => {
         street_number: (formData.get('streetNumber') as string) || null,
         street_name: (formData.get('streetName') as string) || null,
         city: (formData.get('city') as string) || null,
-        postal_code: (formData.get('postalCode') as string) || null,
-        newsletter_subscribed: profile?.newsletter_subscribed || false
+        postal_code: (formData.get('postalCode') as string) || null
       };
 
       const { data, error } = await supabase
@@ -128,7 +116,6 @@ const UserProfile = () => {
       `Cela entraînera :\n` +
       `• La suppression de toutes vos données personnelles\n` +
       `• La perte de votre historique de commandes\n` +
-      `• La suppression de vos points de fidélité\n` +
       `• La désactivation de votre accès au site\n\n` +
       `Cliquez OK pour confirmer la suppression définitive.`
     );
@@ -144,7 +131,6 @@ const UserProfile = () => {
     try {
       // Delete related data first
       await supabase.from('cart').delete().eq('user_id', user?.id);
-      await supabase.from('loyalty_points').delete().eq('user_id', user?.id);
       
       // Delete profile
       const { error: profileError } = await supabase
@@ -413,31 +399,6 @@ const UserProfile = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            
-            {/* Loyalty Points */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Star className="w-5 h-5 mr-2 text-primary" />
-                  Points de fidélité
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    {loyaltyPoints?.points || 0}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    points disponibles
-                  </p>
-                </div>
-                <div className="mt-4 pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    Total gagné : {loyaltyPoints?.total_earned || 0} points
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Quick Actions */}
             <Card>

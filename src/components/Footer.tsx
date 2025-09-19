@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { 
@@ -13,12 +12,10 @@ import {
   MapPin
 } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { NewsletterModal } from "./NewsletterModal";
 import { SupportModal } from "./SupportModal";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const [newsletterOpen, setNewsletterOpen] = useState(false);
   const [supportModal, setSupportModal] = useState<{
     open: boolean;
     type: 'delivery' | 'support' | 'faq' | 'legal' | 'cgv' | 'privacy' | 'cookies' | 'size-guide';
@@ -26,42 +23,6 @@ const Footer = () => {
 
   const openSupportModal = (type: typeof supportModal.type) => {
     setSupportModal({ open: true, type });
-  };
-
-  const handleFooterNewsletter = async (email: string) => {
-    try {
-      const response = await fetch('https://hsvfgfmvdymwcevisyhh.supabase.co/functions/v1/send-newsletter-confirmation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email })
-      });
-
-      if (response.ok) {
-        // Show success message
-        const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
-        if (input) {
-          input.value = '';
-          input.placeholder = 'Inscription confirmée ! ✓';
-          setTimeout(() => {
-            input.placeholder = 'Votre email';
-          }, 3000);
-        }
-      } else {
-        throw new Error('Failed to subscribe');
-      }
-    } catch (error) {
-      console.error('Newsletter error:', error);
-      // Show error message
-      const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
-      if (input) {
-        input.placeholder = 'Erreur, réessayez';
-        setTimeout(() => {
-          input.placeholder = 'Votre email';
-        }, 3000);
-      }
-    }
   };
   
   return (
@@ -178,44 +139,10 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* Contact Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Newsletter</h3>
-            <p className="text-sm text-primary-foreground/80">
-              Inscrivez-vous pour recevoir nos dernières offres et nouveautés.
-            </p>
-            <div className="flex space-x-2">
-              <Input 
-                type="email" 
-                placeholder="Votre email"
-                className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const email = (e.target as HTMLInputElement).value;
-                    if (email) {
-                      // Handle newsletter subscription directly here
-                      handleFooterNewsletter(email);
-                    }
-                  }
-                }}
-              />
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => {
-                  const input = document.querySelector('input[placeholder="Votre email"]') as HTMLInputElement;
-                  if (input?.value) {
-                    handleFooterNewsletter(input.value);
-                  }
-                }}
-              >
-                <Mail className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {/* Contact Info */}
-            <div className="pt-4 space-y-2 text-sm text-primary-foreground/80">
+            <h3 className="text-lg font-semibold">Nous Contacter</h3>
+            <div className="space-y-2 text-sm text-primary-foreground/80">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
                 <span>01 23 45 67 89</span>
@@ -269,11 +196,6 @@ const Footer = () => {
       </div>
 
       {/* Modals */}
-      <NewsletterModal 
-        open={newsletterOpen} 
-        onOpenChange={setNewsletterOpen} 
-        type="subscribe"
-      />
       <SupportModal 
         open={supportModal.open} 
         onOpenChange={(open) => setSupportModal(prev => ({ ...prev, open }))}
