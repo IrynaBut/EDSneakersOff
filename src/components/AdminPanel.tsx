@@ -483,12 +483,11 @@ const [statusFilter, setStatusFilter] = useState('');
             <CardContent>
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
-                  <div key={order.id} className="p-4 border rounded-lg space-y-3">
+                  <div key={order.id} className="p-6 border rounded-lg space-y-4 bg-card">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
-                        <h4 className="font-medium">#{order.order_number}</h4>
-                        <p className="text-sm text-muted-foreground">Client: {order.profiles?.first_name} {order.profiles?.last_name} ({order.profiles?.email || '—'})</p>
-                        <p className="text-sm text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                        <h4 className="font-semibold text-lg">#{order.order_number}</h4>
+                        <p className="text-muted-foreground">{order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <select
@@ -509,31 +508,81 @@ const [statusFilter, setStatusFilter] = useState('');
                         }>
                           {order.status}
                         </Badge>
+                        {order.status === 'shipped' && order.metadata?.tracking_number && (
+                          <Button variant="outline" size="sm" className="ml-2">
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Suivi: {order.metadata.tracking_number}
+                          </Button>
+                        )}
                       </div>
                     </div>
 
+                    {/* Informations client */}
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <h5 className="font-semibold mb-3 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Informations Client
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Nom du client</label>
+                          <p className="font-medium">{order.profiles?.first_name} {order.profiles?.last_name}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Email</label>
+                          <p className="font-medium">{order.profiles?.email || '—'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Mode de paiement</label>
+                          <p className="font-medium">{order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : '—'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">Date de commande</label>
+                          <p className="font-medium">{new Date(order.created_at).toLocaleDateString('fr-FR')}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Adresses */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {order.shipping_address && (
-                        <div className="bg-secondary/20 p-3 rounded">
-                          <div className="font-semibold flex items-center gap-2">
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <h5 className="font-semibold mb-2 flex items-center gap-2 text-green-800">
                             <Package className="h-4 w-4"/>
                             Adresse de livraison 
                             {order.shipping_address.is_pickup_point && <Badge variant="outline" className="ml-2">Point Relais</Badge>}
-                          </div>
+                          </h5>
                           {order.shipping_address.is_pickup_point ? (
-                            <p className="text-sm mt-1">{order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                            <div className="space-y-1">
+                              <p className="font-medium">{order.shipping_address.address_line_1}</p>
+                              {order.shipping_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
+                              <p>{order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                              <p className="text-sm text-muted-foreground">{order.shipping_address.country}</p>
+                            </div>
                           ) : (
-                            <p className="text-sm mt-1">{order.shipping_address.first_name} {order.shipping_address.last_name}, {order.shipping_address.address_line_1}, {order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                            <div className="space-y-1">
+                              <p className="font-medium">{order.shipping_address.first_name} {order.shipping_address.last_name}</p>
+                              <p>{order.shipping_address.address_line_1}</p>
+                              {order.shipping_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.shipping_address.address_line_2}</p>}
+                              <p>{order.shipping_address.postal_code} {order.shipping_address.city}</p>
+                              <p className="text-sm text-muted-foreground">{order.shipping_address.country}</p>
+                            </div>
                           )}
                         </div>
                       )}
                       {order.billing_address && (
-                        <div className="bg-secondary/20 p-3 rounded">
-                          <div className="font-semibold flex items-center gap-2">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h5 className="font-semibold mb-2 flex items-center gap-2 text-blue-800">
                             <BarChart3 className="h-4 w-4"/>
                             Adresse de facturation
+                          </h5>
+                          <div className="space-y-1">
+                            <p className="font-medium">{order.billing_address.first_name} {order.billing_address.last_name}</p>
+                            <p>{order.billing_address.address_line_1}</p>
+                            {order.billing_address.address_line_2 && <p className="text-sm text-muted-foreground">{order.billing_address.address_line_2}</p>}
+                            <p>{order.billing_address.postal_code} {order.billing_address.city}</p>
+                            <p className="text-sm text-muted-foreground">{order.billing_address.country}</p>
                           </div>
-                          <p className="text-sm mt-1">{order.billing_address.first_name} {order.billing_address.last_name}, {order.billing_address.address_line_1}, {order.billing_address.postal_code} {order.billing_address.city}</p>
                         </div>
                       )}
                     </div>
@@ -562,21 +611,12 @@ const [statusFilter, setStatusFilter] = useState('');
                       </div>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                      <Badge variant="secondary">
+                        Paiement: {order.payment_method === 'card' ? 'Carte bancaire' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'Carte bancaire'}
+                      </Badge>
                       {order.payment_status && (
                         <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
-                      )}
-                      {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
-                          className="ml-auto"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-1"/>
-                          Suivi Colis
-                        </Button>
                       )}
                     </div>
                   </div>
