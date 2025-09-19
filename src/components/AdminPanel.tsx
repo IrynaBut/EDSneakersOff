@@ -444,10 +444,7 @@ const [statusFilter, setStatusFilter] = useState('');
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Gestion des Commandes - Sneakers & Baskets</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    Vue administrative des commandes de sneakers avec filtres avancés
-                  </p>
+                  <CardTitle>Gestion des Commandes</CardTitle>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
