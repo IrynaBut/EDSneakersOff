@@ -514,8 +514,43 @@ export const VendorPanel = () => {
                       )}
                     </div>
 
+                    {order.order_items && order.order_items.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="font-semibold">Articles</div>
+                        <div className="space-y-2">
+                          {order.order_items.map((it, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex items-center gap-3">
+                                {it.products?.main_image_url && (
+                                  <img
+                                    src={it.products.main_image_url}
+                                    alt={`Image du produit ${it.products?.name || ''}`}
+                                    loading="lazy"
+                                    className="h-10 w-10 rounded object-cover"
+                                  />
+                                )}
+                                <div>
+                                  <div className="text-sm font-medium">{it.products?.name || 'Article'}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right text-sm">
+                                <div>Qté: {it.quantity}</div>
+                                <div>{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary">Paiement: {order.payment_method || 'Carte bancaire'}</Badge>
+                      {order.payment_status && (
+                        <Badge variant="outline">État: {order.payment_status === 'paid' ? 'Payé' : order.payment_status}</Badge>
+                      )}
                       {(order.status === 'shipped' || order.status === 'Expédiée') && order.metadata?.tracking_number && (
                         <a className="inline-flex items-center text-primary hover:underline text-sm" href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`} target="_blank" rel="noreferrer">
                           <ExternalLink className="h-3 w-3 mr-1"/> Suivi: {order.metadata.tracking_number}
