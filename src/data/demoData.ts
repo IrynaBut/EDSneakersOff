@@ -26,7 +26,7 @@ export type DemoOrder = {
   id: string;
   order_number: string;
   user_id: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'completed' | 'pending' | 'cancelled';
+  status: 'pending' | 'shipped' | 'delivered';
   payment_status?: 'paid' | 'pending' | 'failed' | 'refunded';
   payment_method?: 'card' | 'paypal' | 'bank_transfer';
   total_amount: number;
@@ -126,7 +126,7 @@ export const demoOrders: DemoOrder[] = [
     id: 'demo-ord-3',
     order_number: 'EDN-2025-261-9012',
     user_id: 'demo-user-3',
-    status: 'processing',
+    status: 'pending',
     payment_status: 'paid',
     payment_method: 'card',
     total_amount: 129.95,
@@ -154,7 +154,7 @@ export const demoOrders: DemoOrder[] = [
     id: 'demo-ord-4',
     order_number: 'EDN-2025-221-3456',
     user_id: 'demo-user-4',
-    status: 'completed',
+    status: 'delivered',
     payment_status: 'paid',
     payment_method: 'bank_transfer',
     total_amount: 179.00,
@@ -268,7 +268,7 @@ export const demoOrders: DemoOrder[] = [
     id: 'demo-ord-8',
     order_number: 'EDN-2025-220-3333',
     user_id: 'demo-user-8',
-    status: 'completed',
+    status: 'delivered',
     payment_status: 'paid',
     payment_method: 'bank_transfer',
     total_amount: 139.95,

@@ -424,7 +424,7 @@ const UserProfile = () => {
             {/* Account Management */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-destructive">Zone de danger</CardTitle>
+                <CardTitle>Gestion du compte</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button variant="outline" className="w-full" onClick={signOut}>

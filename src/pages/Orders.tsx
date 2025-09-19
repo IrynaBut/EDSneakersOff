@@ -65,17 +65,14 @@ const Orders = () => {
   }, [user, navigate]);
 
   const getStatusBadge = (status: string) => {
-    // Strict mapping to allowed statuses only
+    // Only 3 allowed statuses
     const statusConfig = {
       'pending': { label: 'En attente', variant: 'secondary' as const },
-      'processing': { label: 'En préparation', variant: 'secondary' as const },
-      'confirmed': { label: 'En préparation', variant: 'secondary' as const },
-      'shipped': { label: 'Expédiée', variant: 'default' as const },
-      'delivered': { label: 'Livrée', variant: 'outline' as const },
-      'completed': { label: 'Livrée', variant: 'outline' as const }
+      'shipped': { label: 'Expédié', variant: 'default' as const },
+      'delivered': { label: 'Livrée', variant: 'outline' as const }
     };
     
-    // Only return allowed French statuses
+    // Only return allowed statuses
     const config = statusConfig[status as keyof typeof statusConfig];
     return config || { label: 'En attente', variant: 'secondary' as const };
   };
@@ -103,8 +100,7 @@ const Orders = () => {
   };
 
   const canReturn = (order: any) => {
-    const normalizedStatus = order.status === 'delivered' || order.status === 'completed' ? 'Livrée' : order.status;
-    if (normalizedStatus !== 'Livrée') return false;
+    if (order.status !== 'delivered') return false;
     
     const deliveryDate = new Date(order.created_at);
     deliveryDate.setDate(deliveryDate.getDate() + 7); // Simulate delivery 7 days after order
@@ -325,7 +321,7 @@ const Orders = () => {
                     {/* Action Buttons */}
                     <Separator className="my-6" />
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                      {(order.status === 'delivered' || order.status === 'completed') ? (
+                      {order.status === 'delivered' ? (
                         <div className="flex-1">
                           <h4 className="font-semibold">Besoin de retourner un article ?</h4>
                           <p className="text-sm text-muted-foreground">
@@ -344,7 +340,7 @@ const Orders = () => {
                       )}
                       
                     <div className="flex gap-2">
-                        {(order.status === 'delivered' || order.status === 'completed') && (
+                        {order.status === 'delivered' && (
                           <Button 
                             variant="outline" 
                             onClick={() => handleReturnRequest(order.id, order.order_number)}
