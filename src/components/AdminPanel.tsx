@@ -14,19 +14,23 @@ import {
   Plus,
   Search,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Percent
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
+import { PromotionModal } from './PromotionModal';
 import { demoOrders } from '@/data/demoData';
 
 interface Product {
   id: string;
   name: string;
   price: number;
+  original_price?: number;
   is_active: boolean;
+  is_promotion?: boolean;
   category_id?: string;
   created_at: string;
 }
@@ -107,7 +111,7 @@ const [statusFilter, setStatusFilter] = useState('');
       // Charger tous les produits
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*')
+        .select('id, name, price, original_price, is_active, is_promotion, category_id, created_at')
         .order('created_at', { ascending: false });
 
       if (productsError) throw productsError;
@@ -367,15 +371,38 @@ const [statusFilter, setStatusFilter] = useState('');
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
-                      <h4 className="font-medium">{product.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{product.name}</h4>
+                        {product.is_promotion && (
+                          <Badge variant="destructive" className="text-xs">
+                            Promotion
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        {product.price}€ • {new Date(product.created_at).toLocaleDateString('fr-FR')}
+                        {product.original_price && product.is_promotion ? (
+                          <>
+                            <span className="line-through text-muted-foreground">{product.original_price}€</span>
+                            <span className="ml-2 text-green-600 font-medium">{product.price}€</span>
+                          </>
+                        ) : (
+                          <span>{product.price}€</span>
+                        )}
+                        <span className="ml-2">• {new Date(product.created_at).toLocaleDateString('fr-FR')}</span>
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge variant={product.is_active ? 'default' : 'secondary'}>
                         {product.is_active ? 'Actif' : 'Inactif'}
                       </Badge>
+                      <PromotionModal 
+                        product={product} 
+                        onPromotionUpdated={loadAllData}
+                      >
+                        <Button size="sm" variant="outline">
+                          <Percent className="h-4 w-4" />
+                        </Button>
+                      </PromotionModal>
                       <Button
                         size="sm"
                         variant="outline"
