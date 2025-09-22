@@ -27,11 +27,11 @@ const Footer = () => {
   
   return (
     <footer className="bg-primary text-primary-foreground">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Brand Section */}
-          <div className="space-y-4">
+          <div className="space-y-2">
           <Link to="/" className="flex items-center space-x-2">
             <img src={logo} alt="EDSneakers" className="h-8 w-auto brightness-0 invert" />
           </Link>
@@ -64,9 +64,9 @@ const Footer = () => {
           </div>
 
           {/* Shop Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Boutique</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="space-y-2">
+            <h3 className="font-semibold">Boutique</h3>
+            <ul className="space-y-1 text-sm">
               <li>
                 <Link to="/homme" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Collection Homme
@@ -96,9 +96,9 @@ const Footer = () => {
           </div>
 
           {/* Support Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Support</h3>
-            <ul className="space-y-2 text-sm">
+          <div className="space-y-2">
+            <h3 className="font-semibold">Support</h3>
+            <ul className="space-y-1 text-sm">
               <li>
                 <button 
                   onClick={() => openSupportModal('support')}
@@ -140,9 +140,9 @@ const Footer = () => {
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Nous Contacter</h3>
-            <div className="space-y-2 text-sm text-primary-foreground/80">
+          <div className="space-y-2">
+            <h3 className="font-semibold">Nous Contacter</h3>
+            <div className="space-y-1 text-sm text-primary-foreground/80">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
                 <span>01 23 45 67 89</span>
@@ -159,7 +159,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <Separator className="my-8 bg-primary-foreground/20" />
+        <Separator className="my-4 bg-primary-foreground/20" />
 
         {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
