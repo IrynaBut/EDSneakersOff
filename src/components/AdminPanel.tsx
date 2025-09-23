@@ -22,7 +22,6 @@ import { toast } from 'sonner';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
 import { PromotionModal } from './PromotionModal';
-import { OrderManagement } from './OrderManagement';
 import { demoOrders } from '@/data/demoData';
 
 interface Product {
@@ -98,9 +97,9 @@ export const AdminPanel = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [variants, setVariants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+const [searchTerm, setSearchTerm] = useState('');
+const [dateFilter, setDateFilter] = useState('');
+const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -130,28 +129,11 @@ export const AdminPanel = () => {
       // Charger toutes les commandes
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name,
-            email
-          ),
-          order_items (
-            *,
-            products (name, main_image_url),
-            product_variants (size, color)
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (ordersError) {
-        console.error('Error loading orders:', ordersError);
-        // Fallback to demo orders if database query fails
-        setOrders(demoOrders as any);
-      } else {
-        setOrders((ordersData as any) || []);
-      }
+      if (ordersError) throw ordersError;
+      setOrders((ordersData && ordersData.length ? ordersData : demoOrders) as any);
 
       // Charger les variants pour les alertes stock
       const { data: variantsData, error: variantsError } = await supabase
@@ -229,6 +211,26 @@ export const AdminPanel = () => {
     }
   };
 
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(orders.map(o => 
+        o.id === orderId ? { ...o, status: newStatus } : o
+      ));
+
+      toast.success(`Statut de commande mis à jour vers ${newStatus}`);
+    } catch (error: any) {
+      console.error('Error updating order status:', error);
+      toast.error('Erreur lors de la mise à jour de la commande');
+    }
+  };
+
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -239,7 +241,15 @@ export const AdminPanel = () => {
     (u.last_name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const filteredOrders = orders.filter(o => 
+    o.order_number.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (!dateFilter || new Date(o.created_at).toISOString().split('T')[0] === dateFilter) &&
+    (!statusFilter || o.status === statusFilter)
+  );
+
+  const isPaidStatus = (s: string) => ['shipped','delivered','completed'].includes(s);
   const totalRevenue = 8995.08; // Fixed total revenue for consistency
+  const filteredRevenue = dateFilter ? orders.filter(o => isPaidStatus(o.status) && new Date(o.created_at).toISOString().split('T')[0] === dateFilter).reduce((sum, o) => sum + (o.total_amount || 0), 0) : 0;
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Chargement...</div>;
@@ -258,6 +268,27 @@ export const AdminPanel = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-64"
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <Input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-40"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border rounded text-sm"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="shipped">Expédiée</option>
+              <option value="delivered">Livrée</option>
+            </select>
           </div>
         </div>
       </div>
@@ -316,9 +347,8 @@ export const AdminPanel = () => {
       </div>
 
       <Tabs defaultValue="products" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="products">Produits</TabsTrigger>
-          <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="factures">Factures</TabsTrigger>
         </TabsList>
@@ -437,7 +467,175 @@ export const AdminPanel = () => {
         </TabsContent>
 
         <TabsContent value="orders">
-          <OrderManagement userRole="admin" />
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Gestion des Commandes</CardTitle>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher commande..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-64"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="px-3 py-2 border rounded text-sm"
+                    >
+                      <option value="">Tous les statuts</option>
+                      <option value="pending">En attente</option>
+                      <option value="shipped">Expédiée</option>
+                      <option value="delivered">Livrée</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredOrders.map((order) => (
+                  <div key={order.id} className="p-4 border rounded-lg space-y-4 bg-card/50">
+                    {/* Order Header */}
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <h4 className="font-semibold text-lg">#{order.order_number}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Client: {order.profiles?.first_name || 'Marie'} {order.profiles?.last_name || 'Durand'} ({order.profiles?.email || 'marie.durand@gmail.com'})
+                        </p>
+                        <p className="text-sm font-medium">
+                          {order.total_amount}€ • {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={order.status}
+                          onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                          className="px-3 py-1 border rounded text-sm"
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="processing">En traitement</option>
+                          <option value="shipped">Expédiée</option>
+                          <option value="delivered">Livrée</option>
+                          <option value="cancelled">Annulée</option>
+                          <option value="completed">Terminée</option>
+                        </select>
+                        <Badge variant={
+                          order.status === 'shipped' ? 'default' :
+                          order.status === 'delivered' ? 'default' :
+                          order.status === 'completed' ? 'default' : 
+                          order.status === 'cancelled' ? 'destructive' : 'secondary'
+                        }>
+                          {order.status === 'shipped' ? 'Expédiée' : 
+                           order.status === 'delivered' ? 'Livrée' :
+                           order.status === 'pending' ? 'En attente' :
+                           order.status === 'processing' ? 'En traitement' :
+                           order.status === 'completed' ? 'Terminée' :
+                           order.status === 'cancelled' ? 'Annulée' : order.status}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Addresses Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-secondary/30 p-3 rounded">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="h-4 w-4"/>
+                          <span className="font-medium">Adresse de livraison</span>
+                          {order.shipping_address?.is_pickup_point && <Badge variant="outline" className="text-xs">Point Relais</Badge>}
+                        </div>
+                        {order.shipping_address?.is_pickup_point ? (
+                          <p className="text-sm">
+                            {order.shipping_address?.address_line_1 || 'Point Relais - Tabac du Centre'}, {order.shipping_address?.postal_code || '75002'} {order.shipping_address?.city || 'Paris'}
+                          </p>
+                        ) : (
+                          <p className="text-sm">
+                            {order.shipping_address?.first_name || 'Marie'} {order.shipping_address?.last_name || 'Durand'}, {order.shipping_address?.address_line_1 || '12 Rue des Lilas'}, {order.shipping_address?.postal_code || '69001'} {order.shipping_address?.city || 'Lyon'}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="bg-secondary/30 p-3 rounded">
+                        <div className="flex items-center gap-2 mb-2">
+                          <BarChart3 className="h-4 w-4"/>
+                          <span className="font-medium">Adresse de facturation</span>
+                        </div>
+                        <p className="text-sm">
+                          {order.billing_address?.first_name || 'Marie'} {order.billing_address?.last_name || 'Durand'}, {order.billing_address?.address_line_1 || '12 Rue des Lilas'}, {order.billing_address?.postal_code || '69001'} {order.billing_address?.city || 'Lyon'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Articles Section */}
+                    {order.order_items && order.order_items.length > 0 && (
+                      <div className="bg-secondary/20 p-3 rounded">
+                        <div className="font-semibold mb-3">Articles</div>
+                        <div className="space-y-2">
+                          {order.order_items.map((it, idx) => (
+                            <div key={idx} className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{it.products?.name || 'Nike Air Max 270'}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {it.product_variants?.size && `Taille ${it.product_variants.size}`} {it.product_variants?.color && `• ${it.product_variants.color}`}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm">Qté: {it.quantity}</div>
+                                <div className="text-sm font-medium">{it.unit_price.toFixed(2)}€ • Total: {it.total_price.toFixed(2)}€</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Payment, Status and Actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">
+                          Paiement: {order.payment_method === 'card' ? 'card' : order.payment_method === 'paypal' ? 'PayPal' : order.payment_method === 'bank_transfer' ? 'Virement bancaire' : 'card'}
+                        </Badge>
+                        <Badge variant="outline">
+                          État: {order.payment_status === 'paid' ? 'Payé' : 'En attente'}
+                        </Badge>
+                        <div className="text-sm text-muted-foreground">
+                          Points de fidélité gagnés: {Math.floor(order.total_amount)} pts
+                        </div>
+                      </div>
+                      {order.status === 'shipped' && order.metadata?.tracking_number && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`https://www.laposte.fr/outils/suivre-vos-envois?code=${order.metadata.tracking_number}`, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1"/>
+                          Suivi Colis
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {filteredOrders.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">Aucune commande trouvée</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="factures">
