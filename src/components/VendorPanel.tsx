@@ -25,6 +25,7 @@ import { RestockModal } from './RestockModal';
 import { Factures } from './Factures';
 import { AddProductModal } from './AddProductModal';
 import { OrderActions } from './OrderActions';
+import { OrderManagement } from './OrderManagement';
 import { demoOrders } from '@/data/demoData';
 
 interface ProductVariant {
@@ -114,8 +115,31 @@ export const VendorPanel = ({ initialTab = 'stock', viewOnlyOrders = false }: { 
       if (variantsError) throw variantsError;
       setVariants(variantsData || []);
 
-      // Charger exclusivement des commandes fictives pour l'onglet Commandes
-      setOrders(demoOrders as any);
+      // Charger les vraies commandes de la base de données
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          profiles (
+            first_name,
+            last_name,
+            email
+          ),
+          order_items (
+            *,
+            products (name, main_image_url),
+            product_variants (size, color)
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) {
+        console.error('Error loading orders:', ordersError);
+        // Fallback to demo orders if database query fails
+        setOrders(demoOrders as any);
+      } else {
+        setOrders((ordersData as any) || []);
+      }
 
     } catch (error: any) {
       console.error('Error loading vendor data:', error);

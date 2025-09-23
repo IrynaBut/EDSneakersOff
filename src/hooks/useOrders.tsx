@@ -140,6 +140,34 @@ export const useOrders = () => {
 
       if (itemsError) throw itemsError;
 
+      // 4.5. Update stock quantities (deduct ordered quantities)
+      for (const item of cartItems) {
+        // Get current stock
+        const { data: variant, error: variantError } = await supabase
+          .from('product_variants')
+          .select('stock_quantity')
+          .eq('id', item.variant_id)
+          .single();
+
+        if (variantError) {
+          console.error('Error fetching variant stock:', variantError);
+          continue;
+        }
+
+        // Calculate new stock quantity
+        const newStock = Math.max(0, variant.stock_quantity - item.quantity);
+        
+        // Update stock
+        const { error: stockError } = await supabase
+          .from('product_variants')
+          .update({ stock_quantity: newStock })
+          .eq('id', item.variant_id);
+
+        if (stockError) {
+          console.error('Error updating stock:', stockError);
+        }
+      }
+
       // 5. Clear cart
       const { error: clearCartError } = await supabase
         .from('cart')
