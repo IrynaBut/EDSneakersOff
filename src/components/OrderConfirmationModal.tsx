@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Package, MapPin, CreditCard, Star } from "lucide-react";
 import { Order } from "@/hooks/useOrders";
+import { Link } from "react-router-dom";
 
 interface OrderConfirmationModalProps {
   open: boolean;
@@ -164,9 +165,9 @@ export const OrderConfirmationModal = ({ open, onOpenChange, order }: OrderConfi
               Continuer mes achats
             </Button>
             <Button className="flex-1" asChild>
-              <a href="/commandes">
+              <Link to="/commandes">
                 Voir mes commandes
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

@@ -209,8 +209,8 @@ const Checkout = () => {
       // Clear cart after successful order
       await clearCart();
       
-      // Show confirmation modal
-      setOrderConfirmation({ open: true, order });
+      // Redirect to confirmation page
+      navigate(`/confirmation?order=${order.order_number}`);
       
       toast({
         title: "Votre commande a été validée !",
