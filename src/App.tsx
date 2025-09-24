@@ -29,6 +29,7 @@ import MentionsLegales from "./pages/MentionsLegales";
 import CGV from "./pages/CGV";
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import PolitiqueCookies from "./pages/PolitiqueCookies";
+import OrderConfirmation from "./pages/OrderConfirmation";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const AppContent = () => {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/commande" element={<Checkout />} />
           <Route path="/commandes" element={<Orders />} />
+          <Route path="/confirmation" element={<OrderConfirmation />} />
           <Route path="/gestion" element={<Management />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/mon-compte" element={
